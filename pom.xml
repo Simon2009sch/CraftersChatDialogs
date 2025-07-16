@@ -10,7 +10,7 @@
     <packaging>pom</packaging>
 
     <modules>
-        <module>CraftersCommandUtils</module>
+        <module>CraftersChatDialogs</module>
         <module>LibraryTestPlugin</module>
     </modules>
 

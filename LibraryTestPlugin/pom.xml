@@ -37,7 +37,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.1</version>
+        <version>3.6.0</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -47,9 +47,15 @@
             <configuration>
               <artifactSet>
                 <includes>
-                  <include>me.simoncrafter:CraftersCommandUtils</include>
+                  <include>me.simoncrafter:CraftersChatDialogs</include>
                 </includes>
               </artifactSet>
+              <relocations>
+                <relocation>
+                  <pattern>me.simoncrafter.CraftersChatDialogs</pattern>
+                  <shadedPattern>me.simoncrafter.libraryTestPlugin.shaded.CraftersChatDialogs</shadedPattern>
+                </relocation>
+              </relocations>
             </configuration>
           </execution>
         </executions>
@@ -74,7 +80,7 @@
   <dependencies>
     <dependency>
       <groupId>me.simoncrafter</groupId>
-      <artifactId>CraftersCommandUtils</artifactId>
+      <artifactId>CraftersChatDialogs</artifactId>
       <version>1</version>
     </dependency>
   </dependencies>
