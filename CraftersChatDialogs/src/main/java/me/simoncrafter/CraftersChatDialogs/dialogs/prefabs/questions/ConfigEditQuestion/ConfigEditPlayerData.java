@@ -1,6 +1,7 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion;
 
-import org.bukkit.entity.Player;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,22 +9,25 @@ import java.util.Map;
 public class ConfigEditPlayerData {
 
     private Map<String, Object> settings = new HashMap<>(); // <path, value>
-    private int line = 0;
+    private Map<String, Integer> lines = new HashMap<>();
     private String path = "";
 
-    public ConfigEditPlayerData(int line, String path) {
-        this.line = line;
+    public ConfigEditPlayerData(Map<String, Integer> line, String path) {
+        this.lines = line;
         this.path = path;
     }
 
     public ConfigEditPlayerData() {}
 
-    public int getLine() {
-        return line;
+    public Map<String, Integer> getLines() {
+        return new HashMap<>(lines);
+    }
+    public int getLineAtCurrentPath() {
+        return lines.getOrDefault(path, 0);
     }
 
-    public void setLine(int line) {
-        this.line = line;
+    public void setLineAtCurrentPath(int line) {
+        this.lines.put(path, line);
     }
 
     public String getPath() {
@@ -35,7 +39,7 @@ public class ConfigEditPlayerData {
     }
 
     public ConfigEditPlayerData clone() {
-        return new ConfigEditPlayerData(line, path);
+        return new ConfigEditPlayerData(lines, path);
     }
 
     public Object getSetting(String path) {

@@ -2,6 +2,8 @@ package me.simoncrafter.CraftersChatDialogs.dialogs;
 
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.ISyncablePath;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -21,6 +23,7 @@ public class QuestionPlayerSyncData {
     public void addEditingPlayer(Player player) {
         editingPlayers.add(player);
     }
+
     public void removeEditingPlayer(Player player) {
         editingPlayers.remove(player);
     }
@@ -64,7 +67,7 @@ public class QuestionPlayerSyncData {
             }
             if (!(question instanceof ISyncablePath)) {
                 players.get(q).reload(true);
-            } else if (((ISyncablePath) question).getPath().equals(path)) {
+            } else if (((ISyncablePath) players.get(q)).getPath().equals(path)) {
                 players.get(q).reload(true);
             }
         }

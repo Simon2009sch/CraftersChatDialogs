@@ -1,7 +1,7 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.def;
 
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickCallback;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -24,7 +24,7 @@ public abstract class AbstractButton<T extends AbstractButton<T>> {
     private boolean disabled = false;
     private Function<Player, Consumer<Boolean>> reloadAction = p -> c -> {};
     private boolean reloadOnUse = false;
-    private ColorPalette colorPalette = ColorPalettes.NEUTRAL_GRAY;
+    private DisplayOption displayOption = DisplayOptions.DEFAULT;
     // Builder-style methods below
 
 
@@ -52,17 +52,17 @@ public abstract class AbstractButton<T extends AbstractButton<T>> {
 
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final @NotNull T colorPalette(@NotNull ColorPalette colorPalette) {
-        this.colorPalette = colorPalette;
+    public final @NotNull T displayOption(@NotNull DisplayOption displayOption) {
+        this.displayOption = displayOption;
         return (T) this;
     }
-    public ColorPalette colorPalette() {
-        return this.colorPalette;
+    public DisplayOption displayOption() {
+        return this.displayOption;
     }
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final T modifyColorPalette(Function<ColorPalette, ColorPalette> modifier) {
-        colorPalette = modifier.apply(colorPalette);
+    public final T modifyDisplayOption(Function<DisplayOption, DisplayOption> modifier) {
+        displayOption = modifier.apply(displayOption);
         return (T) this;
     }
 

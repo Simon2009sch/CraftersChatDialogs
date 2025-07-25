@@ -52,13 +52,13 @@ public class StringInputAction extends InputAction<StringInputAction> {
         clone.setPostActions(postActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setTimeoutActions(timeoutActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setCancelActions(cancelActions().stream().map(IAction::clone).collect(Collectors.toList()));
-        clone.setPrePromptActions(prePromptActions().stream().map(IAction::clone).collect(Collectors.toList()));
+        clone.messageAction(messageAction().clone());
 
         clone.maxResponseTime(maxResponseTime());
         clone.syncKey(syncKey());
         clone.setDisabled(isDisabled());
         clone.prompt(prompt());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
         return clone;
     }

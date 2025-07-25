@@ -1,40 +1,77 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion;
 
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
+import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.Button;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditValues.ConfigEditListSection;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class AbstractConfigEditSection extends ConfigEditValue<AbstractConfigEditSection> {
     private Consumer<String> pathAction;
-    private Button showButton = Button.create().addAction(CustomAction.create(p -> {
-        if (pathAction != null) {
-            Bukkit.broadcast(Component.text("[ShowButton] showing sub section from path: " + getCompletePath() + "\n  pathName: " + pathName()));
-            pathAction.accept(getCompletePath());
-        }else {
-            Bukkit.broadcast(Component.text("[ShowButton] pathAction is null"));
-        }
-    }));
-    private Component actionBarLine = Component.empty();
-    private int maxLines = 14;
+    private Button showButton = Button.create().addAction(displayOption().soundOption().CLICK().toSoundAction()).addAction(CustomAction.create(p -> pathAction.accept(getCompletePath())));
+    private Consumer<AbstractButton<?>> addOptionButtonAction = button -> {};
 
-    @Contract(value = "_ -> this", mutates = "this")
-    public AbstractConfigEditSection actionBarLine(Component line) {
-        this.actionBarLine = line;
+    private boolean showRemoveButtons = false;
+    private boolean showAddButton = false;
+    private Map<String, Object> addButtonPrefabs = new HashMap<>();
+
+
+    @Contract(mutates = "this", value = "-> this")
+    public AbstractConfigEditSection showRemoveButtons(boolean showRemoveButtons) {
+        this.showRemoveButtons = showRemoveButtons;
         return this;
     }
-    public Component actionBarLine() {
-        return actionBarLine;
+    public boolean showRemoveButtons() {
+        return showRemoveButtons;
+    }
+
+    @Contract(mutates = "this", value = "-> this")
+    public AbstractConfigEditSection showAddButton(boolean showAddButton) {
+        this.showAddButton = showAddButton;
+        return this;
+    }
+    public boolean showAddButton() {
+        return showAddButton;
+    }
+
+    @Contract(mutates = "this", value = "_ -> this")
+    public AbstractConfigEditSection addButtonPrefabs(Map<String, Object> prefabs) {
+        this.addButtonPrefabs = prefabs;
+        return this;
+    }
+    @Contract(value = "_ -> this", mutates = "this")
+    public AbstractConfigEditSection addAddButtonPrefab(String key, Object prefab) {
+        this.addButtonPrefabs.put(key, prefab);
+        return this;
+    }
+    @Contract(value = "_ -> this", mutates = "this")
+    public AbstractConfigEditSection removeAddButtonPrefab(String key) {
+        this.addButtonPrefabs.remove(key);
+        return this;
+    }
+    public Map<String, Object> addButtonPrefabs() {
+        return new HashMap<>(addButtonPrefabs);
+    }
+
+    @Contract(value = "_ -> this", mutates = "this")
+    public AbstractConfigEditSection addOptionButtonAction(Consumer<AbstractButton<?>> action) {
+        this.addOptionButtonAction = action;
+        return this;
+    }
+    public Consumer<AbstractButton<?>> addOptionButtonAction() {
+        return addOptionButtonAction;
     }
 
     @Contract(value = "_ -> this", mutates = "this")
@@ -53,14 +90,6 @@ public abstract class AbstractConfigEditSection extends ConfigEditValue<Abstract
     public Consumer<String> pathAction() {
         return pathAction;
     }
-    @Contract(mutates = "this", value = "_ -> this")
-    public AbstractConfigEditSection maxLines(int maxLines) {
-        this.maxLines = maxLines;
-        return this;
-    }
-    public int maxLines() {
-        return maxLines;
-    }
 
 
 
@@ -71,17 +100,23 @@ public abstract class AbstractConfigEditSection extends ConfigEditValue<Abstract
     public abstract AbstractConfigEditSection setValueRecursive(BiConsumer<String, Object> action);
     public abstract AbstractConfigEditSection getPlayerSettingsActionRecursive(Function<String, Object> action);
     public abstract AbstractConfigEditSection setPlayerSettingsActionRecursive(BiConsumer<String, Object> action);
-    public abstract AbstractConfigEditSection setMaxLinesRecursive(int maxLines);
-    public abstract AbstractConfigEditSection colorPaletteRecursive(ColorPalette palette);
+    public abstract AbstractConfigEditSection displayOptionRecursive(DisplayOption displayOption);
     public abstract AbstractConfigEditSection pathActionRecursive(Consumer<String> action);
+    public abstract AbstractConfigEditSection addOptionButtonActionRecursive(Consumer<AbstractButton<?>> action);
+    public abstract AbstractConfigEditSection syncKeyRecursive(String key);
+    public abstract AbstractConfigEditSection permissionPrefixRecursive(Supplier<String> permissionPrefix);
 
     public abstract @Nullable AbstractConfigEditSection getSubSectionFromPath(String path);
     public abstract AbstractConfigEditSection getSubSection(String path);
     public abstract List<Component> getContent(Player player);
+    public abstract int getLines();
+
+
+
 
     protected AbstractConfigEditSection copyBaseFieldsInto(ConfigEditSection target) {
         return super.copyBaseFieldsInto(target)
-                .actionBarLine(actionBarLine())
+                .addOptionButtonAction(addOptionButtonAction())
                 .disableAction(disableAction())
                 .showButton(showButton());
     }

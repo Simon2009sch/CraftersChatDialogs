@@ -81,9 +81,9 @@ public class IntInputButton extends AbstractButton<IntInputButton> {
     }
 
     @Contract(value = "_ -> this")
-    public @NotNull IntInputAction intInputAction(@NotNull IntInputAction action) {
+    public @NotNull IntInputButton intInputAction(@NotNull IntInputAction action) {
         this.intInputAction = action;
-        return action;
+        return this;
     }
 
     @Override

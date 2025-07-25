@@ -4,7 +4,8 @@ import me.simoncrafter.CraftersChatDialogs.Clamp;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.IAction;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.*;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions.DoubleInputAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions.FloatInputAction;
@@ -12,7 +13,6 @@ import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.Button;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.DoubleInputButton;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.FloatInputButton;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -117,7 +117,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
 
     @Contract(value = "-> new")
     public static MovementQuestion create() {
-        return new MovementQuestion().colorPalette(ColorPalettes.YELLOW_ISH.override(ColorPalettes.Overrides.XYZ));
+        return new MovementQuestion().displayOption(DisplayOptions.DEFAULT.colorPalette(DisplayOptions.ColorPalettes.YELLOW_ISH.override(DisplayOptions.ColorPalettes.Overrides.XYZ)));
     }
 
 
@@ -1151,7 +1151,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         addDefualtOnClickFunctions(player);
 
 
-        content = content.append(Component.text("Movement Options   ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(exitButton.compile()));
+        content = content.append(Component.text("Movement Options   ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(exitButton.compile()));
         content = content.appendNewline();
         content = content.appendNewline();
 
@@ -1311,7 +1311,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         setPitchButton.floatInputAction(setPitchButton.floatInputAction().addSuccessAction(reloadAction).addTimeoutAction(reloadAction).maxResponseTime(60).addCancelAction(reloadAction).reTry(true));
         setYawButton.floatInputAction(setYawButton.floatInputAction().addSuccessAction(reloadAction).addTimeoutAction(reloadAction).maxResponseTime(60).addCancelAction(reloadAction).reTry(true));
 
-        exitButton.addAction(exitAction).addAction(ClearCharAction.create()).addAction(MessageAction.create(Component.text("Exited Movement Dialog", colorPalette().RED())));
+        exitButton.addAction(exitAction).addAction(ClearCharAction.create()).addAction(MessageAction.create(Component.text("Exited Movement Dialog", displayOption().colorPalette().RED())));
 
         CustomAction reloadNoCascade = CustomAction.create(p -> reload(player, true));
         setMovementStepButton.doubleInputAction(setMovementStepButton.doubleInputAction().addSuccessAction(reloadNoCascade).addTimeoutAction(reloadNoCascade).maxResponseTime(60).addCancelAction(reloadNoCascade).reTry(true));
@@ -1320,26 +1320,26 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
     }
 
     private void addHoverTextToButtons() {
-        plusXButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  colorPalette().get("X"), TextDecoration.BOLD)));
-        minusXButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  colorPalette().get("X"), TextDecoration.BOLD)));
-        plusYButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        minusYButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        plusZButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        minusZButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        plusRollButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  colorPalette().get("X"), TextDecoration.BOLD)));
-        minusRollButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  colorPalette().get("X"), TextDecoration.BOLD)));
-        plusPitchButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        minusPitchButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        plusYawButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        minusYawButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        setXButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  colorPalette().get("X"), TextDecoration.BOLD)));
-        setYButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        setZButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        setRollButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  colorPalette().get("X"), TextDecoration.BOLD)));
-        setPitchButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  colorPalette().get("Y"), TextDecoration.BOLD)));
-        setYawButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  colorPalette().get("Z"), TextDecoration.BOLD)));
-        setMovementStepButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(movementStep,  colorPalette().MODIFIER(), TextDecoration.BOLD)));
-        setRotationStepButton.hoverText(Component.text("Value: ", colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(rotationStep,  colorPalette().MODIFIER(), TextDecoration.BOLD)));
+        plusXButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        minusXButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        plusYButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        minusYButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        plusZButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        minusZButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        plusRollButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        minusRollButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        plusPitchButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        minusPitchButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        plusYawButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        minusYawButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        setXButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(xPosition,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        setYButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yPosition,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        setZButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(zPosition,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        setRollButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(roll,  displayOption().colorPalette().get("X"), TextDecoration.BOLD)));
+        setPitchButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(pitch,  displayOption().colorPalette().get("Y"), TextDecoration.BOLD)));
+        setYawButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(yaw,  displayOption().colorPalette().get("Z"), TextDecoration.BOLD)));
+        setMovementStepButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(movementStep,  displayOption().colorPalette().MODIFIER(), TextDecoration.BOLD)));
+        setRotationStepButton.hoverText(Component.text("Value: ", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD).append(Component.text(rotationStep,  displayOption().colorPalette().MODIFIER(), TextDecoration.BOLD)));
 
     }
 
@@ -1351,7 +1351,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
 
 
         if (!STATEenableplusXButton && !STATEenableminusXButton) {
-            line1 = line1.append(setXButton.text().color(colorPalette().DISABLED()).hoverEvent(setXButton.hoverText()));
+            line1 = line1.append(setXButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setXButton.hoverText()));
         }else {
             line1 = line1.append(setXButton.compile());
         }
@@ -1359,19 +1359,19 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusXButton) {
             line2 = line2.append(Component.text("")).append(plusXButton.compile());
         }else {
-            line2 = line2.append(Component.text("")).append(plusXButton.text().color(colorPalette().DISABLED()).hoverEvent(plusXButton.hoverText()));
+            line2 = line2.append(Component.text("")).append(plusXButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusXButton.hoverText()));
         }
 
 
         if (STATEenableminusXButton) {
             line3 = line3.append(Component.text("")).append(minusXButton.compile());
         }else {
-            line3 = line3.append(Component.text("")).append(minusXButton.text().color(colorPalette().DISABLED()).hoverEvent(minusXButton.hoverText()));
+            line3 = line3.append(Component.text("")).append(minusXButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusXButton.hoverText()));
         }
 
 
         if (!STATEenableplusYButton && !STATEenableminusYButton) {
-            line1 = line1.append(Component.text("         ").append(setYButton.text().color(colorPalette().DISABLED()).hoverEvent(setYButton.hoverText())));
+            line1 = line1.append(Component.text("         ").append(setYButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setYButton.hoverText())));
         }else {
             line1 = line1.append(Component.text("         ")).append(setYButton.compile());
         }
@@ -1379,19 +1379,19 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusYButton) {
             line2 = line2.append(Component.text("       ")).append(plusYButton.compile());
         }else {
-            line2 = line2.append(Component.text("       ")).append(plusYButton.text().color(colorPalette().DISABLED()).hoverEvent(plusYButton.hoverText()));
+            line2 = line2.append(Component.text("       ")).append(plusYButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusYButton.hoverText()));
         }
 
         if (STATEenableminusYButton) {
             line3 = line3.append(Component.text("       ")).append(minusYButton.compile());
         }else {
-            line3 = line3.append(Component.text("       ")).append(minusYButton.text().color(colorPalette().DISABLED()).hoverEvent(minusYButton.hoverText()));
+            line3 = line3.append(Component.text("       ")).append(minusYButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusYButton.hoverText()));
         }
 
 
 
         if (!STATEenableplusZButton && !STATEenableminusZButton) {
-            line1 = line1.append(Component.text("        ").append(setZButton.text().color(colorPalette().DISABLED()).hoverEvent(setZButton.hoverText())));
+            line1 = line1.append(Component.text("        ").append(setZButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setZButton.hoverText())));
         }else {
             line1 = line1.append(Component.text("        ")).append(setZButton.compile());
         }
@@ -1399,13 +1399,13 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusZButton) {
             line2 = line2.append(Component.text("      ")).append(plusZButton.compile());
         }else {
-            line2 = line2.append(Component.text("      ")).append(plusZButton.text().color(colorPalette().DISABLED()).hoverEvent(plusZButton.hoverText()));
+            line2 = line2.append(Component.text("      ")).append(plusZButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusZButton.hoverText()));
         }
 
         if (STATEenableminusZButton) {
             line3 = line3.append(Component.text("      ")).append(minusZButton.compile());
         }else {
-            line3 = line3.append(Component.text("      ")).append(minusZButton.text().color(colorPalette().DISABLED()).hoverEvent(minusZButton.hoverText()));
+            line3 = line3.append(Component.text("      ")).append(minusZButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusZButton.hoverText()));
         }
 
         // the step button
@@ -1423,7 +1423,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         Component line2 = Component.text("      ");
 
         if (!STATEenableplusRollButton && !STATEenableminusRollButton) {
-            line1 = line1.append(Component.text("").append(setRollButton.text().color(colorPalette().DISABLED()).hoverEvent(setRollButton.hoverText())));
+            line1 = line1.append(Component.text("").append(setRollButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setRollButton.hoverText())));
         }else {
             line1 = line1.append(Component.text("")).append(setRollButton.compile());
         }
@@ -1431,18 +1431,18 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusRollButton) {
             line2 = line2.append(Component.text("")).append(plusRollButton.compile());
         }else {
-            line2 = line2.append(Component.text("")).append(plusRollButton.text().color(colorPalette().DISABLED()).hoverEvent(plusRollButton.hoverText()));
+            line2 = line2.append(Component.text("")).append(plusRollButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusRollButton.hoverText()));
         }
 
 
         if (STATEenableminusRollButton) {
             line2 = line2.appendSpace().append(minusRollButton.compile());
         }else {
-            line2 = line2.appendSpace().append(minusRollButton.text().color(colorPalette().DISABLED()).hoverEvent(minusRollButton.hoverText()));
+            line2 = line2.appendSpace().append(minusRollButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusRollButton.hoverText()));
         }
 
         if (!STATEenableplusPitchButton && !STATEenableminusPitchButton) {
-            line1 = line1.append(Component.text("  ").append(setPitchButton.text().color(colorPalette().DISABLED()).hoverEvent(setPitchButton.hoverText())));
+            line1 = line1.append(Component.text("  ").append(setPitchButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setPitchButton.hoverText())));
         }else {
             line1 = line1.append(Component.text("  ")).append(setPitchButton.compile());
         }
@@ -1450,17 +1450,17 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusPitchButton) {
             line2 = line2.append(Component.text("  ")).append(plusPitchButton.compile());
         }else {
-            line2 = line2.append(Component.text("  ")).append(plusPitchButton.text().color(colorPalette().DISABLED()).hoverEvent(plusPitchButton.hoverText()));
+            line2 = line2.append(Component.text("  ")).append(plusPitchButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusPitchButton.hoverText()));
         }
 
         if (STATEenableminusPitchButton) {
             line2 = line2.appendSpace().append(minusPitchButton.compile());
         }else {
-            line2 = line2.appendSpace().append(minusPitchButton.text().color(colorPalette().DISABLED()).hoverEvent(minusPitchButton.hoverText()));
+            line2 = line2.appendSpace().append(minusPitchButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusPitchButton.hoverText()));
         }
 
         if (!STATEenableplusYawButton && !STATEenableminusYawButton) {
-            line1 = line1.append(Component.text("   ").append(setYawButton.text().color(colorPalette().DISABLED()).hoverEvent(setYawButton.hoverText())));
+            line1 = line1.append(Component.text("   ").append(setYawButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(setYawButton.hoverText())));
         }else {
             line1 = line1.append(Component.text("   ")).append(setYawButton.compile());
         }
@@ -1468,13 +1468,13 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         if (STATEenableplusYawButton) {
             line2 = line2.append(Component.text("  ")).append(plusYawButton.compile());
         }else {
-            line2 = line2.append(Component.text("  ")).append(plusYawButton.text().color(colorPalette().DISABLED()).hoverEvent(plusYawButton.hoverText()));
+            line2 = line2.append(Component.text("  ")).append(plusYawButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(plusYawButton.hoverText()));
         }
 
         if (STATEenableminusYawButton) {
             line2 = line2.appendSpace().append(minusYawButton.compile());
         }else {
-            line2 = line2.appendSpace().append(minusYawButton.text().color(colorPalette().DISABLED()).hoverEvent(minusYawButton.hoverText()));
+            line2 = line2.appendSpace().append(minusYawButton.text().color(displayOption().colorPalette().DISABLED()).hoverEvent(minusYawButton.hoverText()));
         }
 
         line2 = line2.append(getRotationStepButton());
@@ -1511,30 +1511,30 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         final String plus = "[+]";
         final String minus = "[-]";
 
-        plusXButton.text(Component.text(left, colorPalette().get("X")));
-        minusXButton.text(Component.text(right, colorPalette().get("X")));
-        plusYButton.text(Component.text(increase, colorPalette().get("Y")));
-        minusYButton.text(Component.text(decrease, colorPalette().get("Y")));
-        plusZButton.text(Component.text(increase, colorPalette().get("Z")));
-        minusZButton.text(Component.text(decrease, colorPalette().get("Z")));
-        plusRollButton.text(Component.text(plus, colorPalette().get("X")));
-        minusRollButton.text(Component.text(minus, colorPalette().get("X")));
-        plusPitchButton.text(Component.text(plus, colorPalette().get("Y")));
-        minusPitchButton.text(Component.text(minus, colorPalette().get("Y")));
-        plusYawButton.text(Component.text(plus, colorPalette().get("Z")));
-        minusYawButton.text(Component.text(minus, colorPalette().get("Z")));
+        plusXButton.text(Component.text(left, displayOption().colorPalette().get("X")));
+        minusXButton.text(Component.text(right, displayOption().colorPalette().get("X")));
+        plusYButton.text(Component.text(increase, displayOption().colorPalette().get("Y")));
+        minusYButton.text(Component.text(decrease, displayOption().colorPalette().get("Y")));
+        plusZButton.text(Component.text(increase, displayOption().colorPalette().get("Z")));
+        minusZButton.text(Component.text(decrease, displayOption().colorPalette().get("Z")));
+        plusRollButton.text(Component.text(plus, displayOption().colorPalette().get("X")));
+        minusRollButton.text(Component.text(minus, displayOption().colorPalette().get("X")));
+        plusPitchButton.text(Component.text(plus, displayOption().colorPalette().get("Y")));
+        minusPitchButton.text(Component.text(minus, displayOption().colorPalette().get("Y")));
+        plusYawButton.text(Component.text(plus, displayOption().colorPalette().get("Z")));
+        minusYawButton.text(Component.text(minus, displayOption().colorPalette().get("Z")));
 
-        setXButton.text(Component.text("X", colorPalette().get("X"), TextDecoration.BOLD));
-        setYButton.text(Component.text("Y", colorPalette().get("Y"), TextDecoration.BOLD));
-        setZButton.text(Component.text("Z", colorPalette().get("Z"), TextDecoration.BOLD));
-        setRollButton.text(Component.text("ROLL", colorPalette().get("X"), TextDecoration.BOLD));
-        setPitchButton.text(Component.text("PITCH", colorPalette().get("Y"), TextDecoration.BOLD));
-        setYawButton.text(Component.text("YAW", colorPalette().get("Z"), TextDecoration.BOLD));
+        setXButton.text(Component.text("X", displayOption().colorPalette().get("X"), TextDecoration.BOLD));
+        setYButton.text(Component.text("Y", displayOption().colorPalette().get("Y"), TextDecoration.BOLD));
+        setZButton.text(Component.text("Z", displayOption().colorPalette().get("Z"), TextDecoration.BOLD));
+        setRollButton.text(Component.text("ROLL", displayOption().colorPalette().get("X"), TextDecoration.BOLD));
+        setPitchButton.text(Component.text("PITCH", displayOption().colorPalette().get("Y"), TextDecoration.BOLD));
+        setYawButton.text(Component.text("YAW", displayOption().colorPalette().get("Z"), TextDecoration.BOLD));
 
-        setMovementStepButton.text(Component.text("[Step]", colorPalette().MODIFIER()));
-        setRotationStepButton.text(Component.text("[Step]", colorPalette().MODIFIER()));
+        setMovementStepButton.text(Component.text("[Step]", displayOption().colorPalette().MODIFIER()));
+        setRotationStepButton.text(Component.text("[Step]", displayOption().colorPalette().MODIFIER()));
 
-        exitButton.text(Component.text("[X]", colorPalette().RED(), TextDecoration.BOLD));
+        exitButton.text(Component.text("[X]", displayOption().colorPalette().RED(), TextDecoration.BOLD));
 
     }
 
@@ -1640,7 +1640,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         clone.syncKey(this.syncKey());
         clone.onReload(this.onReload());
         clone.player(this.player());
-        clone.colorPalette(this.colorPalette());
+        clone.displayOption(this.displayOption());
 
         return clone;
     }

@@ -1,4 +1,4 @@
-package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets;
+package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -295,5 +295,4 @@ public class ColorPalette {
     public ColorPalette override() {
         return override;
     }
-
 }

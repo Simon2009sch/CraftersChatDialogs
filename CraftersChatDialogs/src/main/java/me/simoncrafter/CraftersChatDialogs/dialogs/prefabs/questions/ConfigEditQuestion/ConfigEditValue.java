@@ -1,50 +1,52 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion;
 
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
     private Component name = Component.empty();
     private Component description = Component.empty();
     private boolean showDescription = false;
-    private Permission showPermission = null;
-    private Permission editPermission = null;
+    /*private boolean checkShowPermission = true; TODO: Implement permission checks.
+    private boolean checkEditPermission = true;
+    private boolean checkDisplayPermission = true;*/
     private Function<Player, Consumer<Boolean>> reloadAction = p -> c -> {};
     private Function<String, Object> getValueAction = s -> null;
     private BiConsumer<String, Object> setValueAction = (path, value) -> {};
     private BiConsumer<String, Object> setPlayerSettingAction = (path, value) -> {};
     private Function<String, Object> getPlayerSettingAction = path -> null;
+    private Supplier<String> permissionPrefixAction = () -> "crafterschatdialogs.genericConfigEdit";
     private CustomAction disableAction;
     private String pathName = "";
     private String path = "";
-    private @NotNull ColorPalette colorPalette = ColorPalettes.Overrides.CONFIG_VALUE_DEFAULT;
-
+    private @NotNull DisplayOption displayOption = DisplayOptions.DEFAULT.modifyColorPalette(c -> c.override(DisplayOptions.ColorPalettes.Overrides.CONFIG_VALUE_DEFAULT));
+    private String syncKey = "";
 
     @Contract(mutates = "this", value = "_ -> this")
     @SuppressWarnings("unchecked")
-    public final T colorPalette(@NotNull ColorPalette colorPalette) {
-        this.colorPalette = colorPalette;
+    public final T displayOption(@NotNull DisplayOption displayOption) {
+        this.displayOption = displayOption;
         return (T) this;
     }
-    public final @NotNull ColorPalette colorPalette() {
-        return colorPalette;
+    public final @NotNull DisplayOption displayOption() {
+        return displayOption;
     }
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final T modifyColorPalette(Function<ColorPalette, ColorPalette> modifier) {
-        colorPalette = modifier.apply(colorPalette);
+    public final T modifyColorPalette(Function<DisplayOption, DisplayOption> modifier) {
+        displayOption = modifier.apply(displayOption);
         return (T) this;
     }
 
@@ -53,6 +55,16 @@ public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
     public final T setDescription(Component description) {
         this.description = description;
         return (T) this;
+    }
+
+    @Contract(mutates = "this", value = "_ -> this")
+    @SuppressWarnings("unchecked")
+    public final T syncKey(@NotNull String syncKey) {
+        this.syncKey = syncKey;
+        return (T) this;
+    }
+    public final String syncKey() {
+        return syncKey;
     }
 
     @Contract(mutates = "this", value = "_ -> this")
@@ -86,45 +98,37 @@ public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
         return showDescription;
     }
 
-    @Contract(mutates = "this", value = "_ -> this")
+    /*@Contract(mutates = "this", value = "_ -> this")     TODO: Implement permission checks (see line 22-24)
     @SuppressWarnings("unchecked")
-    public final T showPermission(Permission permission) {
-        this.showPermission = permission;
+    public final T checkShowPermission(boolean checkShowPermission) {
+        this.checkShowPermission = checkShowPermission;
         return (T) this;
     }
 
-    public final Permission showPermission() {
-        return showPermission;
-    }
-
-    public final boolean checkShowPermission(Player player) {
-        // Default to allowed if no permission is required
-        return showPermission == null || player.hasPermission(showPermission);
+    public final boolean checkShowPermission() {
+        return checkShowPermission;
     }
 
     @Contract(mutates = "this", value = "_ -> this")
     @SuppressWarnings("unchecked")
-    public final T editPermission(Permission permission) {
-        this.editPermission = permission;
+    public final T checkEditPermission(boolean checkEditPermission) {
+        this.checkEditPermission = checkEditPermission;
         return (T) this;
     }
 
-    public final Permission editPermission() {
-        return editPermission;
-    }
-
-    public final boolean checkEditPermission(Player player) {
-        // Default to allowed if no edit permission is required
-        return editPermission == null || player.hasPermission(editPermission);
+    public final boolean checkEditPermission() {
+        return checkEditPermission;
     }
 
     @Contract(mutates = "this", value = "_ -> this")
     @SuppressWarnings("unchecked")
-    public final T setPermission(Permission permission) {
-        this.showPermission = permission;
-        this.editPermission = permission;
+    public final T checkDisplayPermission(boolean checkDisplayPermission) {
+        this.checkDisplayPermission = checkDisplayPermission;
         return (T) this;
     }
+    public final boolean checkDisplayPermission() {
+        return checkDisplayPermission;
+    }*/
 
     @Contract(mutates = "this", value = "_ -> this")
     @SuppressWarnings("unchecked")
@@ -221,6 +225,16 @@ public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
         return getPlayerSettingAction;
     }
 
+    @Contract(mutates = "this", value = "_ -> this")
+    @SuppressWarnings("unchecked")
+    public final T permissionPrefixAction(Supplier<String> permissionPrefixAction) {
+        this.permissionPrefixAction = permissionPrefixAction;
+        return (T) this;
+    }
+    public final Supplier<String> permissionPrefixAction() {
+        return permissionPrefixAction;
+    }
+
 
     public final String path() {
         return path;
@@ -228,8 +242,10 @@ public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
     public abstract Object getValue();
 
     public abstract Component getValueToDisplay();
+    public abstract Component getInactiveValueToDisplay();
 
     public abstract Component getButtonsToDisplay();
+    public abstract Component getInactiveButtonsToDisplay();
 
     public Component getNameToDisplay() {
         if (name == null || PlainTextComponentSerializer.plainText().serialize(name).isEmpty()) {
@@ -254,15 +270,15 @@ public abstract class ConfigEditValue<T extends ConfigEditValue<T>> {
                 .name(name())
                 .setDescription(description())
                 .showDescription(showDescription())
-                .showPermission(showPermission())
-                .editPermission(editPermission())
+                /*.checkShowPermission(checkShowPermission()) TODO: Info at line 22-24
+                .checkEditPermission(checkEditPermission())*/
                 .path(path())
                 .pathName(pathName())
                 .getValueAction(getValueAction())
                 .setValueAction(setValueAction())
                 .reloadAction(reloadAction())
                 .disableAction(disableAction())
-                .colorPalette(colorPalette())
+                .displayOption(displayOption())
                 .setPlayerSettingAction(setPlayerSettingAction())
                 .getPlayerSettingAction(getPlayerSettingAction());
     }

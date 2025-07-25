@@ -113,7 +113,7 @@ public class GenericQuestion extends AbstractQuestion<GenericQuestion> {
         clone.syncKey(syncKey());
         clone.onReload(onReload());
         clone.player(player());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
         clone.setButtons(buttons());
         return clone;

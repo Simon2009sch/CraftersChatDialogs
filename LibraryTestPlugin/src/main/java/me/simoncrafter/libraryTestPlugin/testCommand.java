@@ -1,16 +1,17 @@
 package me.simoncrafter.libraryTestPlugin;
 
 import me.simoncrafter.CraftersChatDialogs.Clamp;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.*;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions.LocationInputAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.*;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.AbstractConfigEditSection;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditData;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditPlayerData;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditQuestion;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditSection;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditValues.ConfigEditGenericValue;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditValues.ConfigEditListSection;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.GenericQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.MovementQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.YesNoQuestion;
@@ -78,7 +79,6 @@ public class testCommand implements CommandExecutor, TabExecutor {
         }else if (args[0].equals("input")) {
 
             sendTextInputQuestion((Player) sender);
-            Bukkit.broadcast(Component.text("End of dialog"));
         } else if (args[0].equals("move")) {
 
             for (Entity entity : ((Player) sender).getWorld().getEntities()) {
@@ -161,7 +161,8 @@ public class testCommand implements CommandExecutor, TabExecutor {
                 .rotationStep(rotationStep)
                 .movementStepButtonDoubleInputAction(p -> in -> NumberAction.create(Double.class).number(movementStep).actionType(NumberActionOperations.SET).operation(in1 -> stepValues.get(player).put(movementStepString, in1)).operatorNumber(in).run(p))
                 .rotationStepButtonFloatInputAction(p -> in -> NumberAction.create(Float.class).number(rotationStep).actionType(NumberActionOperations.SET).operation(in1 -> stepValues.get(player).put(rotationStepString, in1)).operatorNumber(in).run(p))
-                .addExitButtonAction(CustomAction.create(p -> stepValues.remove(player)));
+                .addExitButtonAction(CustomAction.create(p -> stepValues.remove(player)))
+                .displayOption(DisplayOptions.DEFAULT.colorPalette(DisplayOptions.ColorPalettes.YELLOW_ISH.override(DisplayOptions.ColorPalettes.Overrides.XYZ)));
         movementQuestion.show(player, "movement");
 
 
@@ -230,27 +231,85 @@ public class testCommand implements CommandExecutor, TabExecutor {
             values = ConfigEditData.configSectionToMap(config_manager.getInstance()
                     .getConfigurationSection("Arena"));
             values = ConfigEditData.setDeepRegexPath(values, "spawn", (path, current) -> current instanceof String ? ConfigEditData.deserializeLocation((String) current) : current);
-            values = ConfigEditData.setDeepRegexPath(values, "locations(\\..+)*\\.\\d+", (path, current) -> {
+            values = ConfigEditData.setDeepRegexPath(values, "(locations(\\..+)*\\.\\d+)?(arenas\\.\\d+\\.spawn)?(arenas\\.\\d+\\.locations\\.\\d+)?", (path, current) -> {
                 if (current instanceof String) {
-                    Bukkit.broadcast(Component.text("Valid location: " + path));
                     return ConfigEditData.deserializeLocation((String) current);
                 }else {
-                    Bukkit.broadcast(Component.text("Not valid location: " + path));
                     return current;
                 }
             });
 
         }
-
-        ColorPalette colorPalette = ColorPalettes.COOL_BLUISH.override(ColorPalettes.Overrides.CONFIG_VALUE_DEFAULT);
+        DisplayOption displayOption = new DisplayOption(DisplayOptions.ColorPalettes.COOL_BLUISH.override(DisplayOptions.ColorPalettes.Overrides.CONFIG_VALUE_DEFAULT), DisplayOptions.SoundOptions.DEFAULT);
 
         ConfigEditData data = ConfigEditData.create(values);
         configEditPlayers.putIfAbsent(player, new ConfigEditPlayerData());
 
-        data.setDeepRegexDisplayData("locations(\\..+)*\\.\\d+", (path, current) -> {
+        data.setDeepRegexDisplayData("empty(\\..*)?", (path, current) -> {
+            if (current instanceof AbstractConfigEditSection section) {
+                section.addButtonPrefabs(ConfigEditData.DataCreationPrefabs.ALL);
+                section.showAddButton(true);
+                section.showRemoveButtons(true);
+                if (section instanceof ConfigEditListSection listSection) {
+                    listSection.showMoveButtons(true);
+                }
+                return section;
+            }
+            return current;
+        });
+        data.setDeepRegexDisplayData("arenas", (path, current) -> {
+            if (current instanceof AbstractConfigEditSection section) {
+                Map<String, Object> map = new HashMap<>();
+
+                map.put("Arena", ConfigEditData.makeMutable(Map.ofEntries(
+                        Map.entry("name","arena_name"),
+                        Map.entry("playerCount", 2),
+                        Map.entry("maxPlayers", 4),
+                        Map.entry("spawn", new Location(Bukkit.getWorld("world"), 34, 77, -323)),
+                        Map.entry("locations", List.of("20 10 20", new Location(Bukkit.getWorld("world"), 34, 77, -323))),
+                        Map.entry("deathMatch", false),
+                        Map.entry("teams", Map.ofEntries(
+                                Map.entry("red", Map.ofEntries(
+                                        Map.entry("Name", "red"),
+                                        Map.entry("Color", "red"),
+                                        Map.entry("Players", 2)
+                                )),
+                                Map.entry("blue", Map.ofEntries(
+                                        Map.entry("Name", "blue"),
+                                        Map.entry("Color", "blue"),
+                                        Map.entry("Players", 1)
+                                ))
+                        )
+                ))));
+
+                section.addButtonPrefabs(map);
+                section.showAddButton(true);
+                section.showRemoveButtons(true);
+                if (section instanceof ConfigEditListSection listSection) {
+                    listSection.showMoveButtons(true);
+                }
+                return section;
+            }
+            return current;
+        });
+
+        data.setDeepRegexDisplayData("arenas\\.\\d+\\.locations", (path, current) -> {
+            if (current instanceof ConfigEditListSection section) {
+                section.addButtonPrefabs(Map.ofEntries(Map.entry("Location", new Location(null, 0, 0, 0))));
+                section.showAddButton(true);
+                section.showRemoveButtons(true);
+                section.showMoveButtons(true);
+                return section;
+            }
+            return current;
+        });
+
+        data.setDeepRegexDisplayData("(locations(\\..+)*\\.\\d+)?", (path, current) -> {
             if (current instanceof ConfigEditGenericValue<?> value && value.getType() == Location.class) {
+                value.displayConstructor(ConfigEditGenericValue.DisplayPrefabs.LOCATION_FULL);
+
                 Component cancelText = Component.text("").append(Component.text("Type cancel to cancel.")
-                        .color(colorPalette.HINT())
+                        .color(displayOption.colorPalette().HINT())
                         .clickEvent(ClickEvent.suggestCommand("cancel"))
                         .hoverEvent(HoverEvent.showText(Component.text("Click to paste \"cancel\" in chat [Click to paste]")))
                         .appendNewline()
@@ -258,7 +317,6 @@ public class testCommand implements CommandExecutor, TabExecutor {
                                 .clickEvent(ClickEvent.suggestCommand("\\cancel"))
                                 .hoverEvent(HoverEvent.showText(Component.text("Click to paste \"\\cancel\" in chat [Click to paste]")))));
                 CustomAction reloadAction = CustomAction.create(p -> value.reloadAction().apply(p).accept(false));
-
 
                 String currentValue = "";
                 DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
@@ -284,39 +342,39 @@ public class testCommand implements CommandExecutor, TabExecutor {
                 String playerLocationRotationString = " " + format.format(player.getLocation().getPitch()) + " "
                         + format.format(player.getLocation().getYaw());
 
-                LocationInputButton editButton = LocationInputButton.create(LocationInputAction.create()
+                LocationInputButton editButton = LocationInputButton.create(LocationInputAction.create(p -> v -> value.setValueAction().accept(value.getCompletePath(), v))
                         .prompt(Component.text("")
-                                .append(Component.text("Please enter a location with the following format in chat!", colorPalette.PRIMARY(), TextDecoration.BOLD))
+                                .append(Component.text("Please enter a location with the following format in chat!", displayOption.colorPalette().PRIMARY(), TextDecoration.BOLD))
                                 .appendNewline()
-                                .append(Component.text("Formata: ", colorPalette.SECONDARY()))
-                                .append(Component.text("[world] ", colorPalette.get("LOCATION_WORLD")))
-                                .append(Component.text("[x] ", colorPalette.get("LOCATION_X")))
-                                .append(Component.text("[y] ", colorPalette.get("LOCATION_Y")))
-                                .append(Component.text("[z] ", colorPalette.get("LOCATION_Z")))
-                                .append(Component.text("[pitch] ", colorPalette.get("LOCATION_PITCH")))
-                                .append(Component.text("[yaw]", colorPalette.get("LOCATION_YAW")))
+                                .append(Component.text("Formata: ", displayOption.colorPalette().SECONDARY()))
+                                .append(Component.text("[world] ", displayOption.colorPalette().get("LOCATION_WORLD")))
+                                .append(Component.text("[x] ", displayOption.colorPalette().get("LOCATION_X")))
+                                .append(Component.text("[y] ", displayOption.colorPalette().get("LOCATION_Y")))
+                                .append(Component.text("[z] ", displayOption.colorPalette().get("LOCATION_Z")))
+                                .append(Component.text("[pitch] ", displayOption.colorPalette().get("LOCATION_PITCH")))
+                                .append(Component.text("[yaw]", displayOption.colorPalette().get("LOCATION_YAW")))
                                 .appendNewline()
-                                .append(Component.text("Current location is: ", colorPalette.SECONDARY()))
-                                .append(value.getDisplayConstructor().apply(value.value()).decorate(TextDecoration.BOLD))
-                                .append(Component.text(" [Click to paste]", colorPalette.SECONDARY_DARK(), TextDecoration.BOLD)
+                                .append(Component.text("Current location is: ", displayOption.colorPalette().SECONDARY()))
+                                .append(value.displayConstructor().apply(value.value(), displayOption.colorPalette()).decorate(TextDecoration.BOLD))
+                                .append(Component.text(" [Click to paste]", displayOption.colorPalette().SECONDARY_DARK(), TextDecoration.BOLD)
                                         .clickEvent(ClickEvent.suggestCommand(currentValue)))
                                 .appendNewline()
-                                .append(Component.text("Paste Options: ", colorPalette.SECONDARY()))
+                                .append(Component.text("Paste Options: ", displayOption.colorPalette().SECONDARY()))
                                 .appendNewline()
-                                .append(Component.text("  [Paste Player Location]", colorPalette.SECONDARY_DARK(), TextDecoration.BOLD)
+                                .append(Component.text("  [Paste Player Location]", displayOption.colorPalette().SECONDARY_DARK(), TextDecoration.BOLD)
                                         .clickEvent(ClickEvent.suggestCommand(playerLocationString)))
                                 .appendNewline()
-                                .append(Component.text("  [Paste Player Location with Rotation]", colorPalette.SECONDARY_DARK(), TextDecoration.BOLD)
-                                        .clickEvent(ClickEvent.suggestCommand(playerLocationRotationString)))
+                                .append(Component.text("  [Paste Player Location with Rotation]", displayOption.colorPalette().SECONDARY_DARK(), TextDecoration.BOLD)
+                                        .clickEvent(ClickEvent.suggestCommand(playerLocationString + playerLocationRotationString)))
                                 .appendNewline()
                                 .append(cancelText))
                         .addSuccessAction(reloadAction)
                         .addCancelAction(reloadAction)
                         .reTry(true)
-                        .colorPalette(colorPalette)
-                        .requireWorld(true)
+                        .displayOption(displayOption)
                         .putWorld(true)
-                        .putRotation(true));
+                        .putRotation(true))
+                        .text(value.displayConstructor().apply(value.value(), displayOption.colorPalette()));
                 value.editButton(editButton);
                 return value;
             }
@@ -325,7 +383,7 @@ public class testCommand implements CommandExecutor, TabExecutor {
 
         ConfigEditQuestion question = ConfigEditQuestion.create(configEditPlayers.get(player), data)
                 .onReload(this::sendEditQuestion)
-                .colorPalette(colorPalette)
+                //.displayOption(displayOption)
                 .showSaveChangesButton(true)
                 .saveChangesAction(this::saveConfigCallback);
 
@@ -338,13 +396,14 @@ public class testCommand implements CommandExecutor, TabExecutor {
                 .reloadOnUse(true)
                 .text(Component.text("[Reload]", NamedTextColor.RED, TextDecoration.BOLD));
         player.sendMessage(reloadButton.compile());
+        saveConfigCallback();
     }
     private void saveConfigCallback() {
         config_manager.getInstance().set("Arena", ConfigEditData.applyMapToSection(
                 values,
                 config_manager.getInstance().getConfigurationSection("Arena"),
                 Map.ofEntries(
-                        Map.entry(Location.class, ConfigEditData.Serializers.LOCATION_POSITION)
+                        Map.entry(Location.class, ConfigEditData.Serializers.LOCATION_FULL)
                 )));
         config_manager.getInstance().save();
     }

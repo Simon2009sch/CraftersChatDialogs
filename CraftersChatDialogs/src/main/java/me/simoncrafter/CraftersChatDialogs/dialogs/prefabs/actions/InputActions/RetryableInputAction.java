@@ -100,8 +100,7 @@ public abstract class RetryableInputAction<T extends RetryableInputAction<T>> ex
                 action.run(player);
             }
             setDisabled(false);
-            removePrePromptAction(MessageAction.create(reTryMessage));
-            addPrePromptAction(MessageAction.create(reTryMessage));
+            messageAction(MessageAction.create(reTryMessage));
             run(player);
         }
     }

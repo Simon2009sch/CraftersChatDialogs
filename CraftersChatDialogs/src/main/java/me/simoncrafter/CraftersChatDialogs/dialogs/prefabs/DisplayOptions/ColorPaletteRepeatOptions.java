@@ -1,15 +1,12 @@
-package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets;
+package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.jetbrains.annotations.Contract;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class ColorPaletteRepeatOptions {
     private TextColor color = NamedTextColor.WHITE;

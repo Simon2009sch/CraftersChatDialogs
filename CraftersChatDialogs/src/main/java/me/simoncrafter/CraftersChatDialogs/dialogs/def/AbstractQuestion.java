@@ -2,8 +2,8 @@ package me.simoncrafter.CraftersChatDialogs.dialogs.def;
 
 import me.simoncrafter.CraftersChatDialogs.dialogs.QuestionPlayerManager;
 import me.simoncrafter.CraftersChatDialogs.dialogs.QuestionSyncManager;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -27,7 +28,7 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
     private @NotNull CustomAction onReload = CustomAction.create();
     private @Nullable String syncKey = "";
     private Player player;
-    private ColorPalette colorPalette = ColorPalettes.NEUTRAL_GRAY;
+    private DisplayOption displayOption = DisplayOptions.DEFAULT;
 
     public final Function<Player, Consumer<Boolean>> reloadAction = (p) -> (cascade) -> reload(p, cascade);
 
@@ -42,18 +43,18 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
 
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final @NotNull T colorPalette(@NotNull ColorPalette colorPalette) {
-        this.colorPalette = colorPalette;
+    public final @NotNull T displayOption(@NotNull DisplayOption displayOption) {
+        this.displayOption = displayOption;
         return (T) this;
     }
-    public final @NotNull ColorPalette colorPalette() {
-        return colorPalette;
+    public final @NotNull DisplayOption displayOption() {
+        return displayOption;
     }
 
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final T modifyColorPalette(Function<ColorPalette, ColorPalette> modifier) {
-        colorPalette = modifier.apply(colorPalette);
+    public final T modifyDisplayOption(Function<DisplayOption, DisplayOption> modifier) {
+        displayOption = modifier.apply(displayOption);
         return (T) this;
     }
 
@@ -185,8 +186,9 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
 
     public  static void clearChat(@NotNull Player player) {
         Component out = Component.empty();
-        for (int i = 0; i < 30; i++) {
-            out = out.append(Component.newline());
+        Random random = new Random();
+        for (int i = 0; i < 100; i++) {
+            out = out.append(Component.newline().append(Component.text(" ".repeat(random.nextInt(30)))));
         }
         player.sendMessage(out);
     }

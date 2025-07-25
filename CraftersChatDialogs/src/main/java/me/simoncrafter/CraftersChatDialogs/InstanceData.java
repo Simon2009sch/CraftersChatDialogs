@@ -20,4 +20,6 @@ public class InstanceData {
     public static void setPlugin(Plugin plugin) {
         InstanceData.plugin = plugin;
     }
+
+
 }

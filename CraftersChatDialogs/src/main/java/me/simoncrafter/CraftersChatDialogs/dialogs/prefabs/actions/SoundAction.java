@@ -23,8 +23,27 @@ public class SoundAction implements IAction {
     }
 
     @Contract("_ -> new")
-    public static @NotNull SoundAction create(@NotNull Sound message) {
-        return new SoundAction(message);
+    public static @NotNull SoundAction create(@NotNull Sound sound) {
+        return create(sound, 1, 1);
+    }
+    @Contract("_, _ -> new")
+    public static @NotNull SoundAction create(@NotNull Sound sound, float volume) {
+        return create(sound, volume, 1);
+    }
+    @Contract("_, _, _ -> new")
+    public static @NotNull SoundAction create(@NotNull Sound sound, float volume, float pitch) {
+        SoundAction action = new SoundAction(sound);
+        action.volume = volume;
+        action.pitch = pitch;
+        return action;
+    }
+    @Contract("_, _, _ -> new")
+    public static @NotNull SoundAction create(@NotNull Sound sound, float volume, float pitch, SoundCategory category) {
+        SoundAction action = new SoundAction(sound);
+        action.volume = volume;
+        action.pitch = pitch;
+        action.category = category;
+        return action;
     }
 
 

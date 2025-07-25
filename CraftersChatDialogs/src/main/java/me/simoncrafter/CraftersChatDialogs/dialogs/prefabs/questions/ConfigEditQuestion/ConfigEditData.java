@@ -25,6 +25,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+// Quick note: ChatGPT mostly(~80%) wrote this file. (With a few minor changes from me)
+//   I was to lazy to think of all the edge cases myself.
+//   Also it wrote all the docs comments for me.
+//   And it's basicly the same thing over and over again. And that's what AI is for. ;-)
+
+
 public class ConfigEditData {
 
     private Map<String, Object> values = new HashMap<>();
@@ -36,24 +42,50 @@ public class ConfigEditData {
         this.values = values;
     }
 
+    /**
+     * Creates a new ConfigEditData instance with the provided map of values.
+     *
+     * @param map The map containing configuration values
+     * @return A new ConfigEditData instance
+     */
     public static ConfigEditData create(Map<String, Object> map) {
         return new ConfigEditData(map);
     }
+    /**
+     * Creates a new empty ConfigEditData instance.
+     *
+     * @return A new empty ConfigEditData instance
+     */
     public static ConfigEditData create() {
         return new ConfigEditData(new HashMap<>());
     }
 
+    /**
+     * Creates and returns a new root section with all values from this ConfigEditData.
+     *
+     * @return A new ConfigEditSection containing all configuration values
+     */
     public @NotNull ConfigEditSection getNewRootSection() {
         rootSection = ConfigEditSection.create(Component.text(""))
                 .values(buildDisplayMapRecursive(values));
         return rootSection;
     }
+    /**
+     * Returns the existing root section, creating a new one if it doesn't exist.
+     *
+     * @return The existing or newly created root section
+     */
     public @NotNull ConfigEditSection getRootSectionAndCreateIfAbsent() {
         if (rootSection == null) {
             rootSection = getNewRootSection();
         }
         return rootSection;
     }
+    /**
+     * Returns the current root section, or null if none exists.
+     *
+     * @return The current root section, or null if not set
+     */
     public @Nullable ConfigEditSection getRootSection() {
         return rootSection;
     }
@@ -95,6 +127,12 @@ public class ConfigEditData {
         }
     }
 
+    /**
+     * Finds the minimal valid path that points to a valid section (Map or List).
+     *
+     * @param path The path to check
+     * @return The longest valid path that points to a section, or empty string if none found
+     */
     public String getMinimalValidPath(String path) {
         String currentPath = path;
 
@@ -115,6 +153,12 @@ public class ConfigEditData {
         return "";
     }
 
+    /**
+     * Gets a configuration section as a Map.
+     *
+     * @param path The path to the section (dot notation)
+     * @return The section as a Map, or null if the path doesn't point to a valid section
+     */
     public Map<String, Object> getSection(String path) {
         if (path.isEmpty()) {
             return values;
@@ -132,6 +176,12 @@ public class ConfigEditData {
         return (current instanceof Map) ? (Map<String, Object>) current : null;
     }
 
+    /**
+     * Gets any configuration value at the given path, regardless of type.
+     *
+     * @param path The path to the value (dot notation)
+     * @return The value at the path, or null if not found
+     */
     public Object getSectionAny(String path) {
         if (path.isEmpty()) {
             return values;
@@ -166,32 +216,82 @@ public class ConfigEditData {
         return null;
     }
 
+    /**
+     * Gets a value from the configuration.
+     *
+     * @param path The path to the value (dot notation)
+     * @return The value, or null if not found or path is invalid
+     */
     public @Nullable Object getValue(String path) {
         if (path.isEmpty()) {
             return values;
         }
 
         String[] parts = path.split("\\.");
-        Map<String, Object> current = values;
+        Object current = values;
 
         for (int i = 0; i < parts.length - 1; i++) {
-            Object next = current.get(parts[i]);
-            if (isMapOfStringObject(next)) {
-                current = (Map<String, Object>) next;
+            if (isMapOfStringObject(current)) {
+                Map<String, Object> map = (Map<String, Object>) current;
+                current = map.get(parts[i]);
+            } else if (isObjectList(current)) {
+                List<Object> list = (List<Object>) current;
+                try {
+                    int index = Integer.parseInt(parts[i]);
+                    if (index >= 0 && index < list.size()) {
+                        current = list.get(index);
+                    } else {
+                        return null;
+                    }
+                } catch (NumberFormatException e) {
+                    return null;
+                }
             } else {
-                return null; // Can't traverse further if not a map
+                return null;
             }
         }
 
-        return current.get(parts[parts.length - 1]);
+        // Final step: handle last part
+        String last = parts[parts.length - 1];
+
+        if (isMapOfStringObject(current)) {
+            return ((Map<String, Object>) current).get(last);
+        } else if (isObjectList(current)) {
+            try {
+                int index = Integer.parseInt(last);
+                List<Object> list = (List<Object>) current;
+                if (index >= 0 && index < list.size()) {
+                    return list.get(index);
+                } else {
+                    return null;
+                }
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+
+        return null;
     }
 
 
 
+    /**
+     * Associates the specified value with the specified key in this configuration.
+     *
+     * @param key The key with which the specified value is to be associated
+     * @param value The value to be associated with the specified key
+     */
     public void putValue(String key, Object value) {
         values.put(key, value);
     }
 
+    /**
+     * Sets a value at the specified path in the configuration.
+     * Supports nested paths using dot notation.
+     *
+     * @param path The path to set (dot notation)
+     * @param value The value to set
+     */
     public void setValue(String path, Object value) {
         String[] parts = path.split("\\.");
         Object current = values;
@@ -223,6 +323,13 @@ public class ConfigEditData {
     }
 
 
+    /**
+     * Gets a value from the configuration, returning a default value if not found.
+     *
+     * @param path The path to the value (dot notation)
+     * @param defaultValue The default value to return if the path doesn't exist
+     * @return The value at the path, or the default value if not found
+     */
     public @Nullable Object getValueOrDefault(String path, Object defaultValue) {
         Object value = getValue(path);
         return value != null ? value : defaultValue;
@@ -245,6 +352,12 @@ public class ConfigEditData {
         return obj instanceof List<?> list;
     }
 
+    /**
+     * Creates a deep copy of this ConfigEditData instance.
+     *
+     * @return A new ConfigEditData instance with the same values
+     */
+    @Override
     public ConfigEditData clone() {
         ConfigEditData clone = create();
         clone.values = new HashMap<>(this.values);
@@ -297,6 +410,14 @@ public class ConfigEditData {
         return true;
     }
 
+    /**
+     * Applies the contents of a Map to a ConfigurationSection.
+     * This is a convenience method that calls applyMapToSection with an empty serializers map.
+     *
+     * @param map The map containing the values to apply
+     * @param section The ConfigurationSection to modify
+     * @return The modified ConfigurationSection
+     */
     public static ConfigurationSection applyMapToSection(Map<String, Object> map, ConfigurationSection section) {
         return applyMapToSection(map, section, Map.of());
     }
@@ -381,12 +502,14 @@ public class ConfigEditData {
         }
     }
 
+
     /**
-     * Recursively converts a Bukkit ConfigurationSection and all its nested subsections
-     * into a nested Map<String, Object>.<br>
-     * Because of the nature of ConfigurationSection, the map isn't ordered like in the file. (For a ordered map, use {@link #create(Map)} and create your config yourself)
-     * @param section The ConfigurationSection to convert.
-     * @return A Map representing the structure and values of the ConfigurationSection.
+     * Converts a ConfigurationSection to a Map.
+     * Note: The resulting map is not ordered like in the original file.
+     * For ordered maps, use create() with your own Map implementation.
+     *
+     * @param section The ConfigurationSection to convert
+     * @return A Map representing the ConfigurationSection's contents
      */
     public static Map<String, Object> configSectionToMap(ConfigurationSection section) {
         Map<String, Object> result = new LinkedHashMap<>();
@@ -553,7 +676,63 @@ public class ConfigEditData {
         }
     }
 
+    public static ConfigurationSection applyMapToSectionWithRegexTransformers(
+            Map<String, Object> map,
+            ConfigurationSection section,
+            Map<String, BiFunction<String, Object, Object>> pathTransformers
+    ) {
+        applyMapRecursive(map, section, pathTransformers, "");
+        return section;
+    }
 
+    @SuppressWarnings("unchecked")
+    private static void applyMapRecursive(
+            Object currentValue,
+            ConfigurationSection currentSection,
+            Map<String, BiFunction<String, Object, Object>> pathTransformers,
+            String currentPath
+    ) {
+        if (currentValue instanceof Map<?, ?> map) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) map).entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                String fullPath = currentPath.isEmpty() ? key : currentPath + "." + key;
+
+                if (value instanceof Map<?, ?> subMap) {
+                    boolean validKeys = subMap.keySet().stream().allMatch(k -> k instanceof String);
+                    if (!validKeys) {
+                        throw new IllegalArgumentException("Map keys must be Strings: path=" + fullPath);
+                    }
+                    ConfigurationSection childSection = currentSection.createSection(key);
+                    applyMapRecursive(subMap, childSection, pathTransformers, fullPath);
+
+                } else if (value instanceof List<?> list) {
+                    List<Object> processedList = new ArrayList<>();
+                    for (int i = 0; i < list.size(); i++) {
+                        Object element = list.get(i);
+                        String elementPath = fullPath + "." + i;
+
+                        Object transformed = applyMatchingTransformer(elementPath, element, pathTransformers);
+                        processedList.add(transformed);
+                    }
+                    currentSection.set(key, processedList);
+
+                } else {
+                    Object transformed = applyMatchingTransformer(fullPath, value, pathTransformers);
+                    currentSection.set(key, transformed);
+                }
+            }
+        }
+    }
+
+    private static Object applyMatchingTransformer(String path, Object value, Map<String, BiFunction<String, Object, Object>> transformers) {
+        for (Map.Entry<String, BiFunction<String, Object, Object>> entry : transformers.entrySet()) {
+            if (path.matches(entry.getKey())) {
+                return entry.getValue().apply(path, value);
+            }
+        }
+        return value;
+    }
 
     /**
      * Creates a deep mutable copy of the given map. Nested maps and lists are also copied to mutable equivalents.
@@ -674,14 +853,57 @@ public class ConfigEditData {
                                 locationFormatter.format(location.getYaw())
                         : obj;
 
-        public static final Function<Object, Object> LOCATION_FULL = obj ->
-                obj instanceof Location location ?
-                        location.getWorld().getName() + " " +
+        public static final Function<Object, Object> LOCATION_FULL = obj -> {
+                if (obj instanceof Location location) {
+                        String worldText = location.getWorld() == null ? "" : location.getWorld().getName() + " ";
+                        return worldText +
                                 locationFormatter.format(location.getX()) + " " +
                                 locationFormatter.format(location.getY()) + " " +
                                 locationFormatter.format(location.getZ()) + " " +
                                 locationFormatter.format(location.getPitch()) + " " +
-                                locationFormatter.format(location.getYaw())
-                        : obj;
+                                locationFormatter.format(location.getYaw());
+                }
+                return obj;
+        };
+        public static final Function<Object, Object> LOCATION_WORLD = obj -> {
+            if (obj instanceof Location location) {
+                String worldText = location.getWorld() == null ? "" : location.getWorld().getName() + " ";
+                return worldText +
+                        locationFormatter.format(location.getX()) + " " +
+                        locationFormatter.format(location.getY()) + " " +
+                        locationFormatter.format(location.getZ()) + " ";
+            }
+            return obj;
+        };
+    }
+    public static final class DataCreationPrefabs {
+        public static final Map<String, Object> ALL = makeMutable(Map.ofEntries(
+                Map.entry("String",""),
+                Map.entry("Integer", 0),
+                Map.entry("Double", 0d),
+                Map.entry("Float", 0f),
+                Map.entry("Boolean", false),
+                Map.entry("List", new ArrayList<>()),
+                Map.entry("Section", new HashMap<>())
+        ));
+        public static final Map<String, Object> NO_SECTION = makeMutable(Map.ofEntries(
+                Map.entry("String",""),
+                Map.entry("Integer", 0),
+                Map.entry("Double", 0d),
+                Map.entry("Float", 0f),
+                Map.entry("Boolean", false),
+                Map.entry("List", new ArrayList<>())
+        ));
+        public static final Map<String, Object> MINIMAL = makeMutable(Map.ofEntries(
+                Map.entry("String",""),
+                Map.entry("Integer", 0),
+                Map.entry("Double", 0d),
+                Map.entry("Boolean", false)
+        ));
+        public static final Map<String, Object> NUMBERS = makeMutable(Map.ofEntries(
+                Map.entry("Integer", 0),
+                Map.entry("Double", 0d),
+                Map.entry("Float", 0f)
+        ));
     }
 }

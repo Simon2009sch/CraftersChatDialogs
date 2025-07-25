@@ -3,13 +3,11 @@ package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions
 import me.simoncrafter.CraftersChatDialogs.dialogs.QuestionSyncManager;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.IAction;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalette;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.ColorPalets.ColorPalettes;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.MessageAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.response.PlayerResponseManager;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
@@ -25,10 +23,10 @@ public abstract class InputAction<T extends InputAction<T>> implements IAction {
     private List<@NotNull IAction> postActions = new ArrayList<>();
     private List<@NotNull IAction> timeoutActions = new ArrayList<>();
     private List<@NotNull IAction> cancelActions = new ArrayList<>();
-    private List<@NotNull IAction> prePromtActions = new ArrayList<>();
+    private @NotNull IAction messageAction = MessageAction.create("");
     private int maxResponseTime = 60;
     private String syncKey = "";
-    private ColorPalette colorPalette = ColorPalettes.NEUTRAL_GRAY;
+    private DisplayOption displayOption = DisplayOptions.DEFAULT;
     private Component prompt = Component.text("No Input prompt given!");
 
 
@@ -39,12 +37,12 @@ public abstract class InputAction<T extends InputAction<T>> implements IAction {
 
     @Contract(value = "_ -> this", mutates = "this")
     @SuppressWarnings("unchecked")
-    public final T colorPalette(@NotNull ColorPalette colorPalette) {
-        this.colorPalette = colorPalette;
+    public final T displayOption(@NotNull DisplayOption displayOption) {
+        this.displayOption = displayOption;
         return (T) this;
     }
-    public final ColorPalette colorPalette() {
-        return colorPalette;
+    public final DisplayOption displayOption() {
+        return displayOption;
     }
 
     @Contract(value = "_ -> this", mutates = "this")
@@ -171,26 +169,14 @@ public abstract class InputAction<T extends InputAction<T>> implements IAction {
     public final @NotNull List<@NotNull IAction> cancelActions() {
         return cancelActions;
     }
-    @SuppressWarnings("unchecked")
+
     @Contract(value = "_ -> this", mutates = "this")
-    public final T addPrePromptAction(@NotNull IAction action) {
-        this.prePromtActions.add(action);
+    public final T messageAction(@NotNull IAction messageAction) {
+        this.messageAction = messageAction;
         return (T) this;
     }
-    @SuppressWarnings("unchecked")
-    @Contract(value = "_ -> this", mutates = "this")
-    public final T setPrePromptActions(@NotNull List<@NotNull IAction> actions) {
-        this.prePromtActions.addAll(actions);
-        return (T) this;
-    }
-    @SuppressWarnings("unchecked")
-    @Contract(value = "_ -> this")
-    public final T removePrePromptAction(@NotNull IAction action) {
-        this.prePromtActions.remove(action);
-        return (T) this;
-    }
-    public final @NotNull List<@NotNull IAction> prePromptActions() {
-        return prePromtActions;
+    public final @NotNull IAction messageAction() {
+        return messageAction;
     }
 
     // -- Execution --
@@ -209,9 +195,10 @@ public abstract class InputAction<T extends InputAction<T>> implements IAction {
             action.run(player);
         }
         AbstractQuestion.clearChat(player);
-        for (IAction action : prePromtActions) {
-            action.run(player);
-        }
+
+        //retrymessage
+        messageAction.run(player);
+
         if  (!PlainTextComponentSerializer.plainText().serialize(prompt).isEmpty() || prompt == Component.empty() || prompt == Component.text("")) {
             player.sendMessage(prompt);
         }

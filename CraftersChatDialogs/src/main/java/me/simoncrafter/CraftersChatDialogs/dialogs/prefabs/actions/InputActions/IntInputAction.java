@@ -1,8 +1,6 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions;
 
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.IAction;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.function.Consumer;
@@ -44,7 +42,6 @@ public class IntInputAction extends RetryableInputAction<IntInputAction> {
             handleSuccess(player);
         }catch (NumberFormatException e) {
             handleRetry(player);
-            Bukkit.broadcast(Component.text("Der hund hat ein Problem: \"" + message + "\""));
         }
     }
 
@@ -55,7 +52,7 @@ public class IntInputAction extends RetryableInputAction<IntInputAction> {
         clone.setPostActions(postActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setTimeoutActions(timeoutActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setCancelActions(cancelActions().stream().map(IAction::clone).collect(Collectors.toList()));
-        clone.setPrePromptActions(prePromptActions().stream().map(IAction::clone).collect(Collectors.toList()));
+        clone.messageAction(messageAction().clone());
 
         clone.successActions(successActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.reTryActions(reTryActions().stream().map(IAction::clone).collect(Collectors.toList()));
@@ -66,7 +63,7 @@ public class IntInputAction extends RetryableInputAction<IntInputAction> {
         clone.setDisabled(isDisabled());
         clone.prompt(prompt());
         clone.reTryMessage(reTryMessage());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
 
 

@@ -58,7 +58,7 @@ public class DoubleInputAction extends RetryableInputAction<DoubleInputAction> {
         clone.setPostActions(postActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setTimeoutActions(timeoutActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setCancelActions(cancelActions().stream().map(IAction::clone).collect(Collectors.toList()));
-        clone.setPrePromptActions(prePromptActions().stream().map(IAction::clone).collect(Collectors.toList()));
+        clone.messageAction(messageAction().clone());
 
         clone.successActions(successActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.reTryActions(reTryActions().stream().map(IAction::clone).collect(Collectors.toList()));
@@ -69,7 +69,7 @@ public class DoubleInputAction extends RetryableInputAction<DoubleInputAction> {
         clone.setDisabled(isDisabled());
         clone.prompt(prompt());
         clone.reTryMessage(reTryMessage());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
 
 

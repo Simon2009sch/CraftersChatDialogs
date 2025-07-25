@@ -1,10 +1,10 @@
 package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditValues;
 
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
-import me.simoncrafter.CraftersChatDialogs.dialogs.def.IAction;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.ColorPalette;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions.*;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.MessageAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.*;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions.ConfigEditQuestion.ConfigEditValue;
 import net.kyori.adventure.text.Component;
@@ -14,22 +14,16 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.apache.commons.lang3.function.TriFunction;
 import org.apache.logging.log4j.util.TriConsumer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.inject.Named;
-import java.beans.ConstructorProperties;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGenericValue<T>> {
@@ -38,8 +32,10 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
     private Class<T> type;
     private AbstractButton<?> editButton = null;
 
-    private Function<Object, Component> displayConstructor = DisplayPrefabs.GENERIC;
+    private BiFunction<Object, ColorPalette, Component> displayConstructor = DisplayPrefabs.GENERIC;
     private TriConsumer<String, T, AbstractButton<?>> setterActionConstructor = (path, button, value) -> {};
+
+    private Function<AbstractButton<?>, AbstractButton<?>> editButtonModifier = button -> button;
 
     private ConfigEditGenericValue(Class<T> type, T value) {
         this.value = value;
@@ -52,11 +48,20 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
         return type;
     }
 
+    @Contract(value = "_ -> this", mutates = "this")
+    public ConfigEditGenericValue<T> editButtonModifier(Function<AbstractButton<?>, AbstractButton<?>> editButtonModifier) {
+        this.editButtonModifier = editButtonModifier;
+        return this;
+    }
+    public Function<AbstractButton<?>, AbstractButton<?>> editButtonModifier() {
+        return editButtonModifier;
+    }
+
     @SuppressWarnings("unchecked")
     public static <T> ConfigEditGenericValue<T> fromValue(@NotNull T value) {
         Class<T> type = (Class<T>) value.getClass();
 
-        Function<Object, Component> displayFunction;
+        BiFunction<Object, ColorPalette, Component> displayFunction;
 
         if (type == String.class) {
             displayFunction = DisplayPrefabs.STRING;
@@ -87,11 +92,11 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
         return value;
     }
     @Contract(value = "_ -> this", mutates = "this")
-    public ConfigEditGenericValue<T> displayConstructor(Function<Object, Component> displayConstructor) {
+    public ConfigEditGenericValue<T> displayConstructor(BiFunction<Object, ColorPalette, Component> displayConstructor) {
         this.displayConstructor = displayConstructor;
         return this;
     }
-    public Function<Object, Component> getDisplayConstructor() {
+    public BiFunction<Object, ColorPalette, Component> displayConstructor() {
         return displayConstructor;
     }
     @Contract(value = "_ -> this", mutates = "this")
@@ -123,6 +128,10 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
 
     @Override
     public Component getButtonsToDisplay() {
+        return getInactiveButtonsToDisplay();
+    }
+    @Override
+    public Component getInactiveButtonsToDisplay() {
         return Component.text("");
     }
 
@@ -138,23 +147,42 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
             }
         }
         if (editButton == null) {
-            return getEditButtonFromType();
+            AbstractButton<?> editButtonFromType = getEditButtonFromType();
+            if (editButtonFromType != null) {
+                editButton = editButtonFromType;
+            }else {
+                return displayConstructor.apply(value, displayOption().colorPalette());
+            }
         }
+        editButton.text(getInactiveValueToDisplay());
+        editButton = editButtonModifier.apply(editButton.clone()); // apply api user defined action
 
         return editButton.addPostAction(disableAction()).compile();
     }
+    @Override
+    public Component getInactiveValueToDisplay() {
+        return displayConstructor.apply(value, displayOption().colorPalette());
+    }
 
-    public Component getEditButtonFromType() {
+    public AbstractButton<?> getEditButtonFromType() {
+        return getEditButtonFromType(displayOption());
+    }
+    public AbstractButton<?> getEditButtonFromType(DisplayOption displayOption) {
         AbstractButton<?> editButton = null;
         CustomAction reloadAction = CustomAction.create(p -> reloadAction().apply(p).accept(false));
-        Component cancelText = Component.text("").append(Component.text("Type cancel to cancel.")
-                .color(colorPalette().HINT())
-                .clickEvent(ClickEvent.suggestCommand("cancel"))
-                .hoverEvent(HoverEvent.showText(Component.text("Click to paste \"cancel\" in chat [Click to paste]"))));
+
+        // default for all types
+        Component cancelText = Component.text("").append(Component.text("Type cancel to cancel. [Click to paste]")
+                        .decoration(TextDecoration.BOLD, false))
+                .color(displayOption().colorPalette().HINT())
+                .clickEvent(ClickEvent.suggestCommand("cancel"));
+        // default for string string
         Component stringCancelInputText = Component.newline()
-                .append(Component.text(" Put a \\ before it to input \"cancel\"")
+                .append(Component.text(" Put a \\ before it to input \"cancel\" [Click to paste]", displayOption().colorPalette().HINT())
                         .clickEvent(ClickEvent.suggestCommand("\\cancel"))
-                        .hoverEvent(HoverEvent.showText(Component.text("Click to paste \"\\cancel\" in chat [Click to paste]"))));
+                        .decoration(TextDecoration.BOLD, false));
+
+        // check type and create edit button
         if (type == String.class) {
             editButton = StringInputButton.create(StringInputAction.create(player -> value -> {
                         setValueAction().accept(getCompletePath(), value);
@@ -162,74 +190,101 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
                                 .accept(false);
                     })
                     .addCancelAction(reloadAction)
-                    .colorPalette(colorPalette())
+                    .displayOption(displayOption())
                     .prompt(Component.text("")
-                            .append(Component.text("Please enter text in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD)
+                            .append(Component.text("Please enter text in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD)
                                     .hoverEvent(HoverEvent.showText(Component.text("String")))
                                     .appendNewline()
-                                    .append(Component.text("").style(Style.empty()))
-                                    .append(Component.text("Current value: ", colorPalette().SECONDARY()).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(value.toString(), colorPalette().get("STRING")).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(" [Click to paste]", colorPalette().SECONDARY(), TextDecoration.BOLD)
+                                    .append(Component.text("")
+                                            .style(Style.empty()))
+                                    .append(Component.text("Current value: ", displayOption().colorPalette().SECONDARY())
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(value.toString(), displayOption().colorPalette().get("STRING"))
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(" [Click to paste]", displayOption().colorPalette().SECONDARY(), TextDecoration.BOLD)
                                             .clickEvent(ClickEvent.suggestCommand(value.toString())))
                                     .appendNewline()
                                     .append(cancelText.decoration(TextDecoration.BOLD, false))
-                                    .append(stringCancelInputText.decoration(TextDecoration.BOLD, false))
-                            )));
+                                    .append(stringCancelInputText.decoration(TextDecoration.BOLD, false))))
+                    .syncKey(syncKey())
+                    .addPostAction(displayOption().soundOption().SUCCESS().toSoundAction())
+
+            ).addAction(displayOption().soundOption().INPUT_REQUIRED().toSoundAction());
         } else if (type == Integer.class) {
             editButton = IntInputButton.create(IntInputAction.create(player -> value -> setValueAction().accept(getCompletePath(), value))
                     .addSuccessAction(reloadAction)
                     .addCancelAction(reloadAction)
                     .reTry(true)
-                    .colorPalette(colorPalette())
+                    .displayOption(displayOption())
                     .prompt(Component.text("")
-                            .append(Component.text("Please enter a whole number in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD)
+                            .append(Component.text("Please enter a whole number in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD)
                                     .hoverEvent(HoverEvent.showText(Component.text("Integer")))
                                     .appendNewline()
-                                    .append(Component.text("").style(Style.empty()))
-                                    .append(Component.text("Current value: ", colorPalette().SECONDARY()).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(value.toString(), colorPalette().get("INTEGER")).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(" [Click to paste]", colorPalette().SECONDARY())
+                                    .append(Component.text("")
+                                            .style(Style.empty()))
+                                    .append(Component.text("Current value: ", displayOption().colorPalette().SECONDARY())
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(value.toString(), displayOption().colorPalette().get("INT"))
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(" [Click to paste]", displayOption().colorPalette().SECONDARY())
                                             .clickEvent(ClickEvent.suggestCommand(value.toString())))
                                     .appendNewline()
-                                    .append(cancelText)
-                            )));
+                                    .append(cancelText)))
+                    .syncKey(syncKey())
+                    .addSuccessAction(displayOption().soundOption().SUCCESS().toSoundAction())
+                    .addReTryAction(displayOption().soundOption().ERROR().toSoundAction())
+
+            ).addAction(displayOption().soundOption().INPUT_REQUIRED().toSoundAction());
         } else if (type == Double.class) {
             editButton = DoubleInputButton.create(DoubleInputAction.create(player -> value -> setValueAction().accept(getCompletePath(), value))
                     .addSuccessAction(reloadAction)
                     .addCancelAction(reloadAction)
                     .reTry(true)
-                    .colorPalette(colorPalette())
+                    .displayOption(displayOption())
                     .prompt(Component.text("")
-                            .append(Component.text("Please enter a decimal number in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD)
+                            .append(Component.text("Please enter a decimal number in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD)
                                     .hoverEvent(HoverEvent.showText(Component.text("Double")))
                                     .appendNewline()
-                                    .append(Component.text("").style(Style.empty()))
-                                    .append(Component.text("Current value: ", colorPalette().SECONDARY()).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(value.toString(), colorPalette().get("DOUBLE")).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(" [Click to paste]", colorPalette().SECONDARY(), TextDecoration.BOLD)
+                                    .append(Component.text("")
+                                            .style(Style.empty()))
+                                    .append(Component.text("Current value: ", displayOption().colorPalette().SECONDARY())
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(value.toString(), displayOption().colorPalette().get("DECIMAL"))
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(" [Click to paste]", displayOption().colorPalette().SECONDARY(), TextDecoration.BOLD)
                                             .clickEvent(ClickEvent.suggestCommand(value.toString())))
                                     .appendNewline()
-                                    .append(cancelText)
-                            )));
+                                    .append(cancelText)))
+                    .syncKey(syncKey())
+                    .addSuccessAction(displayOption().soundOption().SUCCESS().toSoundAction())
+                    .addReTryAction(displayOption().soundOption().ERROR().toSoundAction())
+
+            ).addAction(displayOption().soundOption().INPUT_REQUIRED().toSoundAction());
         } else if (type == Float.class) {
             editButton = FloatInputButton.create(FloatInputAction.create(player -> value -> setValueAction().accept(getCompletePath(), value))
                     .addSuccessAction(reloadAction)
                     .addCancelAction(reloadAction)
                     .reTry(true)
-                    .colorPalette(colorPalette())
+                    .displayOption(displayOption())
                     .prompt(Component.text("")
-                            .append(Component.text("Please enter a decimal number in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD)
+                            .append(Component.text("Please enter a decimal number in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD)
                                     .hoverEvent(HoverEvent.showText(Component.text("Float")))
                                     .appendNewline()
-                                    .append(Component.text("").style(Style.empty()))
-                                    .append(Component.text("Current value: ", colorPalette().SECONDARY()).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(value.toString(), colorPalette().get("FLOAT")).decoration(TextDecoration.BOLD, false))
-                                    .append(Component.text(" [Click to paste]", colorPalette().SECONDARY(), TextDecoration.BOLD)
+                                    .append(Component.text("")
+                                            .style(Style.empty()))
+                                    .append(Component.text("Current value: ", displayOption().colorPalette().SECONDARY())
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(value.toString(), displayOption().colorPalette().get("DECIMAL"))
+                                            .decoration(TextDecoration.BOLD, false))
+                                    .append(Component.text(" [Click to paste]", displayOption().colorPalette().SECONDARY(), TextDecoration.BOLD)
                                             .clickEvent(ClickEvent.suggestCommand(value.toString())))
                                     .appendNewline()
-                                    .append(cancelText)
-                            )));
+                                    .append(cancelText)))
+                    .syncKey(syncKey())
+                    .addSuccessAction(displayOption().soundOption().SUCCESS().toSoundAction())
+                    .addReTryAction(displayOption().soundOption().ERROR().toSoundAction())
+
+            ).addAction(displayOption().soundOption().INPUT_REQUIRED().toSoundAction());
         } else if (type == Location.class) {
             String currentValue = "";
             DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
@@ -246,106 +301,172 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
 
             editButton = LocationInputButton.create(LocationInputAction.create(player -> value -> setValueAction().accept(getCompletePath(), value))
                     .prompt(Component.text("")
-                            .append(Component.text("Please enter a location with the following format in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD))
+                            .append(Component.text("Please enter a location with the following format in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD))
                             .appendNewline()
-                            .append(Component.text("Format: ", colorPalette().SECONDARY()))
-                            .append(Component.text("[world] ", colorPalette().get("LOCATION_WORLD")))
-                            .append(Component.text("[x] ", colorPalette().get("LOCATION_X")))
-                            .append(Component.text("[y] ", colorPalette().get("LOCATION_Y")))
-                            .append(Component.text("[z] ", colorPalette().get("LOCATION_Z")))
-                            .append(Component.text("[pitch] ", colorPalette().get("LOCATION_PITCH")))
-                            .append(Component.text("[yaw]", colorPalette().get("LOCATION_YAW")))
+                            .append(Component.text("Format: ", displayOption().colorPalette().SECONDARY()))
+                            .append(Component.text("[world] ", displayOption().colorPalette().get("LOCATION_WORLD")))
+                            .append(Component.text("[x] ", displayOption().colorPalette().get("LOCATION_X")))
+                            .append(Component.text("[y] ", displayOption().colorPalette().get("LOCATION_Y")))
+                            .append(Component.text("[z] ", displayOption().colorPalette().get("LOCATION_Z")))
+                            .append(Component.text("[pitch] ", displayOption().colorPalette().get("LOCATION_PITCH")))
+                            .append(Component.text("[yaw]", displayOption().colorPalette().get("LOCATION_YAW")))
                             .appendNewline()
-                            .append(Component.text("Current location is: ", colorPalette().SECONDARY()))
-                            .append(displayConstructor.apply(value).decorate(TextDecoration.BOLD))
-                            .append(Component.text(" [Click to paste]", colorPalette().SECONDARY(), TextDecoration.BOLD)
+                            .append(Component.text("Current location is: ", displayOption().colorPalette().SECONDARY()))
+                            .append(displayConstructor.apply(value, displayOption().colorPalette())
+                                    .decorate(TextDecoration.BOLD))
+                            .append(Component.text(" [Click to paste]", displayOption().colorPalette().SECONDARY(), TextDecoration.BOLD)
                                     .clickEvent(ClickEvent.suggestCommand(currentValueRotation)))
                             .appendNewline()
                             .append(cancelText))
+                    .syncKey(syncKey())
                     .addSuccessAction(reloadAction)
                     .addCancelAction(reloadAction)
                     .reTry(true)
-                    .colorPalette(colorPalette()));
+                    .displayOption(displayOption())
+                    .addSuccessAction(displayOption().soundOption().SUCCESS().toSoundAction())
+                    .addReTryAction(displayOption().soundOption().ERROR().toSoundAction())
+
+            ).addAction(displayOption().soundOption().INPUT_REQUIRED().toSoundAction());
         } else if (type == Boolean.class) {
-            editButton = ToggleButton.create((Boolean) value);
+            editButton = ToggleButton.create((Boolean) value)
+                    .toggleCallback(bool -> setValueAction().accept(getCompletePath(), bool))
+                    .displayOption(displayOption())
+                    .reloadAction(reloadAction())
+                    .reloadOnUse(true)
+                    .enabledText(Component.text("true", displayOption().colorPalette().get("BOOLEAN_TRUE")))
+                    .disabledText(Component.text("false", displayOption().colorPalette().get("BOOLEAN_FALSE")))
+                    .addEnableAction(displayOption().soundOption().CLICk_ON().toSoundAction())
+                    .addDisableAction(displayOption().soundOption().CLICk_OFF().toSoundAction());
         } else {
-            return displayConstructor.apply(value);
+            return null;
         }
-        return editButton.text(displayConstructor.apply(value)).addPostAction(disableAction()).compile();
+        return editButton;
     }
 
     // prefabs
     public static final class DisplayPrefabs {
         private final static Component NULL_DISPLAY_VALUE = Component.text("NULL", NamedTextColor.RED, TextDecoration.BOLD);
-        public final static Function<Object, Component> STRING = obj -> {
+        public final static BiFunction<Object, ColorPalette, Component> STRING = (obj, color) -> {
             if (obj instanceof String string) {
-                return Component.text("\"", NamedTextColor.GREEN)
-                        .append(Component.text(string, NamedTextColor.GREEN))
-                        .append(Component.text("\"", NamedTextColor.GREEN));
+                return Component.text("\"", color.get("STRING"))
+                        .append(Component.text(string, color.get("STRING")))
+                        .append(Component.text("\"", color.get("STRING")));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> INT = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> INT = (obj, color) -> {
             if (obj instanceof Integer integer) {
-                return Component.text(integer, TextColor.fromHexString("#22DDDD"));
+                return Component.text(integer, color.get("INT"));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> DECIMAL = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> DECIMAL = (obj, color) -> {
             if (obj instanceof Number number) {
-                return Component.text(number.doubleValue(), TextColor.fromHexString("#22DDDD"));
+                return Component.text(number.doubleValue(), color.get("DECIMAL"));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> LIMITED_DECIMAL = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> LIMITED_DECIMAL = (obj, color) -> {
             if (obj instanceof Integer integer) {
-                return Component.text(integer, TextColor.fromHexString("#22DDDD"));
+                return Component.text(integer, color.get("DECIMAL"));
             }
             if (obj instanceof Number number) {
                 DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
-                DecimalFormat format = new DecimalFormat("0.###", symbols); // Force '.' as decimal separator
+                DecimalFormat format = new DecimalFormat("0.###", symbols);
                 String formatted = format.format(number.doubleValue());
-                return Component.text(formatted, TextColor.fromHexString("#22DDDD"));
+                return Component.text(formatted, color.get("DECIMAL"));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
-
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> LOCATION = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> LOCATION = (obj, color) -> {
             if (obj instanceof Location loc) {
                 DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
-                DecimalFormat format = new DecimalFormat("0.###", symbols); // Use dot for decimal
-
+                DecimalFormat format = new DecimalFormat("0.###", symbols);
                 String X = format.format(loc.getX());
                 String Y = format.format(loc.getY());
                 String Z = format.format(loc.getZ());
 
-                return Component.text(X + " ", NamedTextColor.RED).append(Component.text(Y + " ", NamedTextColor.GREEN)).append(Component.text(Z, NamedTextColor.BLUE));
+                return Component.text(X + " ", color.get("LOCATION_X"))
+                        .append(Component.text(Y + " ", color.get("LOCATION_Y")))
+                        .append(Component.text(Z, color.get("LOCATION_Z")));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> LOCATION_WORLD = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> LOCATION_WORLD = (obj, color) -> {
             if (obj instanceof Location loc) {
                 DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
-                DecimalFormat format = new DecimalFormat("0.###", symbols); // Use dot for decimal
-
-                String world = loc.getWorld().getName();
+                DecimalFormat format = new DecimalFormat("0.###", symbols);
+                String world = loc.getWorld() == null ? "" : loc.getWorld().getName() + " ";
                 String X = format.format(loc.getX());
                 String Y = format.format(loc.getY());
                 String Z = format.format(loc.getZ());
 
-                return Component.text(world + " ", NamedTextColor.YELLOW).append(Component.text(X + " ", NamedTextColor.RED)).append(Component.text(Y + " ", NamedTextColor.GREEN)).append(Component.text(Z, NamedTextColor.BLUE));
+                return Component.text(world, color.get("LOCATION_WORLD"))
+                        .append(Component.text(X + " ", color.get("LOCATION_X")))
+                        .append(Component.text(Y + " ", color.get("LOCATION_Y")))
+                        .append(Component.text(Z, color.get("LOCATION_Z")));
             }
             if (obj == null) return NULL_DISPLAY_VALUE;
             return Component.text(obj.toString(), NamedTextColor.RED);
         };
-        public final static Function<Object, Component> GENERIC = obj -> {
+
+        public final static BiFunction<Object, ColorPalette, Component> LOCATION_ROTATION = (obj, color) -> {
+            if (obj instanceof Location loc) {
+                DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+                DecimalFormat format = new DecimalFormat("0.###", symbols);
+
+                String X = format.format(loc.getX());
+                String Y = format.format(loc.getY());
+                String Z = format.format(loc.getZ());
+                String Yaw = format.format(loc.getYaw());
+                String Pitch = format.format(loc.getPitch());
+
+                return Component.text(X + " ", color.get("LOCATION_X"))
+                        .append(Component.text(Y + " ", color.get("LOCATION_Y")))
+                        .append(Component.text(Z + " ", color.get("LOCATION_Z")))
+                        .append(Component.text(Yaw + " ", color.get("LOCATION_YAW")))
+                        .append(Component.text(Pitch, color.get("LOCATION_PITCH")));
+            }
             if (obj == null) return NULL_DISPLAY_VALUE;
-            return Component.text(obj.toString(), NamedTextColor.LIGHT_PURPLE);
+            return Component.text(obj.toString(), NamedTextColor.RED);
+        };
+
+        public final static BiFunction<Object, ColorPalette, Component> LOCATION_FULL = (obj, color) -> {
+            if (obj instanceof Location loc) {
+                DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+                DecimalFormat format = new DecimalFormat("0.###", symbols);
+
+                String world = loc.getWorld() == null ? "" : loc.getWorld().getName() + " ";
+                String X = format.format(loc.getX());
+                String Y = format.format(loc.getY());
+                String Z = format.format(loc.getZ());
+                String Yaw = format.format(loc.getYaw());
+                String Pitch = format.format(loc.getPitch());
+
+                return Component.text(world, color.get("LOCATION_WORLD"))
+                        .append(Component.text(X + " ", color.get("LOCATION_X")))
+                        .append(Component.text(Y + " ", color.get("LOCATION_Y")))
+                        .append(Component.text(Z + " ", color.get("LOCATION_Z")))
+                        .append(Component.text(Yaw + " ", color.get("LOCATION_YAW")))
+                        .append(Component.text(Pitch, color.get("LOCATION_PITCH")));
+            }
+            if (obj == null) return NULL_DISPLAY_VALUE;
+            return Component.text(obj.toString(), NamedTextColor.RED);
+        };
+
+        public final static BiFunction<Object, ColorPalette, Component> GENERIC = (obj, color) -> {
+            if (obj == null) return NULL_DISPLAY_VALUE;
+            return Component.text(obj.toString(), color.get("GENERIC"));
         };
     }
 
@@ -373,15 +494,15 @@ public class ConfigEditGenericValue<T> extends ConfigEditValue<ConfigEditGeneric
         copy.name(this.name())
                 .setDescription(this.description())
                 .showDescription(this.showDescription())
-                .showPermission(this.showPermission())
-                .editPermission(this.editPermission())
+                /*.checkShowPermission(this.checkShowPermission()) TODO: See ConfigEditValue line 22-24
+                .checkEditPermission(this.checkEditPermission())*/
                 .path(this.path())
                 .pathName(this.pathName())
                 .reloadAction(this.reloadAction())
                 .disableAction(this.disableAction())
                 .getValueAction(getValueAction())
                 .displayConstructor(this.displayConstructor);
-        copy.colorPalette(colorPalette());
+        copy.displayOption(displayOption());
 
         return copy;
     }

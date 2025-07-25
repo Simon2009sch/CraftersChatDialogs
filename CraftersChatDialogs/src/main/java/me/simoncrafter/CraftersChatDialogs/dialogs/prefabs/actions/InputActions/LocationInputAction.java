@@ -12,8 +12,6 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 
-import javax.inject.Named;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -24,7 +22,6 @@ import java.util.stream.Collectors;
 public class LocationInputAction extends RetryableInputAction<LocationInputAction> {
 
     private Function<Player, Consumer<Location>> onResponse = p -> response -> {};
-    private boolean requireWorld = true;
     private boolean putWorld = true;
     private boolean putRotation = true;
 
@@ -44,19 +41,19 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
 
     private LocationInputAction init() {
         prompt(
-                Component.text("Please enter a location with the following format in chat!", colorPalette().PRIMARY(), TextDecoration.BOLD)
+                Component.text("Please enter a location with the following format in chat!", displayOption().colorPalette().PRIMARY(), TextDecoration.BOLD)
                         .appendNewline()
-                        .append(Component.text("Format: ", colorPalette().PRIMARY()))
-                        .append(Component.text("[world] ", colorPalette().YELLOW()))
-                        .append(Component.text("[x] ", colorPalette().RED()))
-                        .append(Component.text("[y] ", colorPalette().GREEN()))
-                        .append(Component.text("[z] ", colorPalette().BLUE()))
-                        .append(Component.text("[pitch] ", colorPalette().GREEN()))
-                        .append(Component.text("[yaw]", colorPalette().BLUE())
+                        .append(Component.text("Format: ", displayOption().colorPalette().PRIMARY()))
+                        .append(Component.text("[world] ", displayOption().colorPalette().YELLOW()))
+                        .append(Component.text("[x] ", displayOption().colorPalette().RED()))
+                        .append(Component.text("[y] ", displayOption().colorPalette().GREEN()))
+                        .append(Component.text("[z] ", displayOption().colorPalette().BLUE()))
+                        .append(Component.text("[pitch] ", displayOption().colorPalette().GREEN()))
+                        .append(Component.text("[yaw]", displayOption().colorPalette().BLUE())
                         .appendNewline()
                         .append(Component.text("")
                                 .append(Component.text("Type cancel to cancel.")
-                                        .color(colorPalette().HINT())
+                                        .color(displayOption().colorPalette().HINT())
                                         .clickEvent(ClickEvent.suggestCommand("cancel"))
                                         .hoverEvent(HoverEvent.showText(Component.text("Click to paste \"cancel\" in chat")))
                                         .appendNewline()
@@ -75,14 +72,6 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
         return onResponse;
     }
 
-    @Contract(value = "_ -> this", mutates = "this")
-    public LocationInputAction requireWorld(boolean requireWorld) {
-        this.requireWorld = requireWorld;
-        return this;
-    }
-    public boolean requireWorld() {
-        return requireWorld;
-    }
     @Contract(value = "_ -> this", mutates = "this")
     public LocationInputAction putWorld(boolean putWorld) {
         this.putWorld = putWorld;
@@ -110,16 +99,11 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
 
         if (matcher.find()) {
             if (matcher.group("x") == null || matcher.group("y") == null || matcher.group("z") == null) {
-                reTryMessage(Component.text("Invalid location format", colorPalette().ERROR(), TextDecoration.BOLD));
+                reTryMessage(Component.text("Invalid location format", displayOption().colorPalette().ERROR(), TextDecoration.BOLD));
                 handleRetry(player);
                 return;
             }
 
-            if (requireWorld && matcher.group("world") == null) {
-                reTryMessage(Component.text("Please specify a world", NamedTextColor.RED, TextDecoration.BOLD));
-                handleRetry(player);
-                return;
-            }
             if (matcher.group("world") != null && putWorld) {
                 World world = Bukkit.getWorld(matcher.group("world"));
                 if (world == null) {
@@ -157,7 +141,7 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
             onResponse.apply(player).accept(out);
             handleSuccess(player);
         }else {
-            reTryMessage(Component.text("Invalid location format", colorPalette().ERROR(), TextDecoration.BOLD));
+            reTryMessage(Component.text("Invalid location format", displayOption().colorPalette().ERROR(), TextDecoration.BOLD));
             handleRetry(player);
         }
 
@@ -170,7 +154,7 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
         clone.setPostActions(postActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setTimeoutActions(timeoutActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.setCancelActions(cancelActions().stream().map(IAction::clone).collect(Collectors.toList()));
-        clone.setPrePromptActions(prePromptActions().stream().map(IAction::clone).collect(Collectors.toList()));
+        clone.messageAction(messageAction().clone());
 
         clone.successActions(successActions().stream().map(IAction::clone).collect(Collectors.toList()));
         clone.reTryActions(reTryActions().stream().map(IAction::clone).collect(Collectors.toList()));
@@ -180,7 +164,7 @@ public class LocationInputAction extends RetryableInputAction<LocationInputActio
         clone.syncKey(syncKey());
         clone.setDisabled(isDisabled());
         clone.prompt(prompt());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
 
 

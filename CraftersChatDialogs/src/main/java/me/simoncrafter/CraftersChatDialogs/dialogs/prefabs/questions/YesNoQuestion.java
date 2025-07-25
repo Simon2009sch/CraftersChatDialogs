@@ -80,7 +80,7 @@ public class YesNoQuestion extends AbstractQuestion<YesNoQuestion> {
         clone.player(player());
         clone.yesButton(yesButton().clone());
         clone.noButton(noButton().clone());
-        clone.colorPalette(colorPalette());
+        clone.displayOption(displayOption());
 
         return clone;
     }
