@@ -1,7 +1,0 @@
-name: LibraryTestPlugin
-version: '1'
-main: me.simoncrafter.libraryTestPlugin.Main
-api-version: '1.21'
-commands:
-  dialogtest:
-    description: a

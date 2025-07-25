@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="CraftersChatDialogsa" />
+        <module name="CraftersCommandUtils" />
+        <module name="CraftersChatDialogs" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="CraftersChatDialogsa" target="22" />
+      <module name="CraftersCommandUtils" target="22" />
+      <module name="Libraries" target="22" />
+      <module name="librarytestplugin" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
