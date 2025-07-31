@@ -6,18 +6,18 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-public class ClearCharAction implements IAction {
+public class ClearChatAction implements IAction {
 
     private boolean disabled = false;
 
 
-    private ClearCharAction() {
+    private ClearChatAction() {
     }
 
 
     @Contract("-> new")
-    public static @NotNull ClearCharAction create() {
-        return new ClearCharAction();
+    public static @NotNull ClearChatAction create() {
+        return new ClearChatAction();
     }
 
 
@@ -38,8 +38,8 @@ public class ClearCharAction implements IAction {
     }
 
     @Override
-    public ClearCharAction clone() {
-        ClearCharAction clone = new ClearCharAction();
+    public ClearChatAction clone() {
+        ClearChatAction clone = new ClearChatAction();
         clone.setDisabled(isDisabled());
         return clone;
     }

@@ -4,7 +4,6 @@ import me.simoncrafter.CraftersChatDialogs.Clamp;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.IAction;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.*;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.InputActions.DoubleInputAction;
@@ -1311,7 +1310,7 @@ public class MovementQuestion extends AbstractQuestion<MovementQuestion> {
         setPitchButton.floatInputAction(setPitchButton.floatInputAction().addSuccessAction(reloadAction).addTimeoutAction(reloadAction).maxResponseTime(60).addCancelAction(reloadAction).reTry(true));
         setYawButton.floatInputAction(setYawButton.floatInputAction().addSuccessAction(reloadAction).addTimeoutAction(reloadAction).maxResponseTime(60).addCancelAction(reloadAction).reTry(true));
 
-        exitButton.addAction(exitAction).addAction(ClearCharAction.create()).addAction(MessageAction.create(Component.text("Exited Movement Dialog", displayOption().colorPalette().RED())));
+        exitButton.addAction(exitAction).addAction(ClearChatAction.create()).addAction(MessageAction.create(Component.text("Exited Movement Dialog", displayOption().colorPalette().RED())));
 
         CustomAction reloadNoCascade = CustomAction.create(p -> reload(player, true));
         setMovementStepButton.doubleInputAction(setMovementStepButton.doubleInputAction().addSuccessAction(reloadNoCascade).addTimeoutAction(reloadNoCascade).maxResponseTime(60).addCancelAction(reloadNoCascade).reTry(true));

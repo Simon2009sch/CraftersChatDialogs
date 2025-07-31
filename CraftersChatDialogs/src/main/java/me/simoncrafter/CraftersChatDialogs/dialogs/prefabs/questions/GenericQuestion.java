@@ -2,7 +2,7 @@ package me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.questions;
 
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.ClearCharAction;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.ClearChatAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.MessageAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.Button;
@@ -20,7 +20,7 @@ public class GenericQuestion extends AbstractQuestion<GenericQuestion> {
     private List<AbstractButton<?>> buttons = new ArrayList<>();
 
     private Button exitButton = Button.create()
-            .addAction(ClearCharAction.create())
+            .addAction(ClearChatAction.create())
             .addAction(MessageAction.create("Exited Question"))
             .text(Component.text("[Exit]", NamedTextColor.RED));
 

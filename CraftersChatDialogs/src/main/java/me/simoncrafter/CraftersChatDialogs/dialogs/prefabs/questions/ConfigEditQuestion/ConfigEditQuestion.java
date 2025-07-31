@@ -7,18 +7,15 @@ import me.simoncrafter.CraftersChatDialogs.dialogs.QuestionSyncManager;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractButton;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.AbstractQuestion;
 import me.simoncrafter.CraftersChatDialogs.dialogs.def.ISyncablePath;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOption;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.DisplayOptions.DisplayOptions;
-import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.ClearCharAction;
+import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.ClearChatAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.CustomAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.MessageAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.actions.NumberAction;
 import me.simoncrafter.CraftersChatDialogs.dialogs.prefabs.buttons.Button;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -184,7 +181,7 @@ public class ConfigEditQuestion extends AbstractQuestion<ConfigEditQuestion> imp
         Button cancelButton = Button.create()
                 .text(Component.text(" [Cancel] ", displayOption().colorPalette().RED(), TextDecoration.BOLD).decoration(TextDecoration.STRIKETHROUGH, false))
                 .addAction(CustomAction.create(exitAction::run))
-                .addAction(ClearCharAction.create())
+                .addAction(ClearChatAction.create())
                 .addAction(MessageAction.create(Component.text("Closed Config Editor", displayOption().colorPalette().RED())))
                 .addAction(displayOption().soundOption().CLICK().toSoundAction());
         Component withSaveButton = saveButton.compile()

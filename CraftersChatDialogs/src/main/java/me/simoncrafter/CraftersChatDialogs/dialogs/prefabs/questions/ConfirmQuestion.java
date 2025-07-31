@@ -23,7 +23,7 @@ public class ConfirmQuestion extends AbstractQuestion<ConfirmQuestion> {
     private List<IAction> cancelAction = new ArrayList<>();
 
     private Button exitButton = Button.create()
-            .addAction(ClearCharAction.create())
+            .addAction(ClearChatAction.create())
             .addAction(MessageAction.create("Exited Question"))
             .text(Component.text("[Exit]", NamedTextColor.RED));
 
