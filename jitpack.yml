@@ -1,2 +1,4 @@
 jdk:
   - openjdk22
+build:
+  - mvn install -DskipTests
