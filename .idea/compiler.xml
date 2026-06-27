@@ -12,6 +12,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="CraftersChatDialogs (1)" target="22" />
       <module name="CraftersChatDialogsa" target="22" />
       <module name="CraftersCommandUtils" target="22" />
       <module name="Libraries" target="22" />
