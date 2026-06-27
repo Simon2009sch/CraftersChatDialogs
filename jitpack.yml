@@ -1,7 +1,2 @@
-before_install:
-  - sdk install java 22-open
-  - sdk use java 22-open
 jdk:
   - openjdk22
-build:
-  - mvn install -DskipTests
