@@ -180,7 +180,7 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
         }
 
         beforeShow(player);
-        clearChat(player);
+        if (clearChat) clearChat(player);
 
         Component out = Component.text("")
                 .append(question != null ? question : Component.empty())
