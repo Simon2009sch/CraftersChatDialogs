@@ -27,6 +27,7 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
     private Component footer = Component.empty();
     private @NotNull CustomAction onReload = CustomAction.create();
     private @Nullable String syncKey = "";
+    private boolean clearChat = true;
     private Player player;
     private DisplayOption displayOption = DisplayOptions.DEFAULT;
 
@@ -62,6 +63,12 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
     @SuppressWarnings("unchecked")
     public final @NotNull T question(@NotNull Component question) {
         this.question = question;
+        return (T) this;
+    }
+    @Contract(value = "_ -> this", mutates = "this")
+    @SuppressWarnings("unchecked")
+    public final @NotNull T clearChat(@NotNull boolean clearChat) {
+        this.clearChat = clearChat;
         return (T) this;
     }
 
@@ -127,6 +134,9 @@ public abstract class AbstractQuestion<T extends AbstractQuestion<T>> {
 
     public final @NotNull UUID uuid() {
         return uuid;
+    }
+    public boolean clearChat() {
+        return clearChat;
     }
 
     public final @NotNull CustomAction onReload() {
